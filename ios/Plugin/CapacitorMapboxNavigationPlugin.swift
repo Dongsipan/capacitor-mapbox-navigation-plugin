@@ -89,7 +89,7 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             }
         }
         
-        let isSimulate = call.getBool("simulating") ?? false
+        let isSimulate = call.getBool("simulating") ?? true
         
         let routeOptions = NavigationRouteOptions(waypoints: waypoints, profileIdentifier: .automobile)
         
@@ -244,15 +244,30 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             var minDistance: CLLocationDistance = 0;
             var locationId: String = "";
             for (i, route) in routes.enumerated() {
-                let location = route["location"] as! NSArray;
-                let coord1 = CLLocation(latitude: location[1] as! CLLocationDegrees, longitude: location[0] as! CLLocationDegrees)
-                let coord2 = CLLocation(latitude: waypoint.coordinate.latitude, longitude: waypoint.coordinate.longitude)
-                
+                // 检查 route["location"] 是否存在且类型正确
+                guard let locationArray = route["location"] as? NSArray else {
+                    continue // 跳过本次循环
+                }
+                // 检查 route["_id"] 是否存在且类型正确
+                guard let currentLocationId = route["_id"] as? String else {
+                    continue // 跳过本次循环
+                }
+                // 确保 locationArray 有足够元素（至少两个）
+                guard locationArray.count >= 2 else {
+                    continue // 元素不足，跳过
+                }
+                let coord1 = CLLocation(
+                    latitude: locationArray[1] as! CLLocationDegrees,
+                    longitude: locationArray[0] as! CLLocationDegrees
+                )
+                let coord2 = CLLocation(
+                    latitude: waypoint.coordinate.latitude,
+                    longitude: waypoint.coordinate.longitude
+                )
                 let distance = coord1.distance(from: coord2)
-                
                 if (i == 0 || distance < minDistance) {
-                    minDistance = distance;
-                    locationId = route["_id"] as! String;
+                    minDistance = distance
+                    locationId = currentLocationId // 使用检查后的 locationId
                 }
             }
             let loc = Location(_id: locationId, longitude: waypoint.coordinate.longitude, latitude: waypoint.coordinate.latitude, when: getNowString());
@@ -261,11 +276,23 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             
             sendDataToCapacitor(status: "success", type: "on_arrive", content: locationJson)
         } catch {
-            sendDataToCapacitor(status: "failure", type: "on_error", content: "Error: Json Encoding Error")
+            sendDataToCapacitor(status: "failure", type: "on_failure", content: "Error: Json Encoding Error")
         }
         return true
     }
     
+    // 添加 RouteProgress 更新的代理方法
+    public func navigationViewController(_ navigationViewController: NavigationViewController, didUpdate progress: RouteProgress, with location: CLLocation, rawLocation: CLLocation) {
+        do {
+            let jsonEncoder = JSONEncoder()
+            let progressData = try jsonEncoder.encode(progress)
+            let progressJson = String(data: progressData, encoding: String.Encoding.utf8) ?? ""
+            
+            sendDataToCapacitor(status: "success", type: "on_progress_update", content: progressJson)
+        } catch {
+            sendDataToCapacitor(status: "failure", type: "on_failure", content: "Error encoding route progress data")
+        }
+    }
     
     
     @objc public func sendDataToCapacitor(status: String, type: String, content: String) {
@@ -278,4 +305,3 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
         
     }
 }
-

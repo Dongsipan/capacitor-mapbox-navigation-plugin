@@ -195,19 +195,19 @@ checkPermissions() => Promise<PermissionStatus>
 
 #### MapboxResult
 
-| Prop         | Type                                                     |
-| ------------ | -------------------------------------------------------- |
-| **`status`** | <code>'success' \| 'failure'</code>                      |
-| **`type`**   | <code>'on_failure' \| 'on_cancelled' \| 'on_stop'</code> |
-| **`data`**   | <code>string</code>                                      |
+| Prop         | Type                                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| **`status`** | <code>'success' \| 'failure'</code>                                                             |
+| **`type`**   | <code>'on_failure' \| 'on_cancelled' \| 'on_stop' \| 'on_progress_update' \| 'on_arrive'</code> |
+| **`data`**   | <code>string</code>                                                                             |
 
 
 #### MapboxNavOptions
 
-| Prop          | Type                |
+| Prop          | Type                          |
 | ------------- | ----------------------------- |
 | **`routes`**  | <code>LocationOption[]</code> |
-| **`mapType`** | <code>string</code> |
+| **`mapType`** | <code>string</code>           |
 
 
 #### LocationOption

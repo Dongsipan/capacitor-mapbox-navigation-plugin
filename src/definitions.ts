@@ -14,7 +14,7 @@ export interface PermissionStatus {
 
 export interface MapboxResult {
   status: 'success' | 'failure';
-  type: 'on_failure' | 'on_cancelled' | 'on_stop';
+  type: 'on_failure' | 'on_cancelled' | 'on_stop' | 'on_progress_update' | 'on_arrive';
   data: string;
 }
 
