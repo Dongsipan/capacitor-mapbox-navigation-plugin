@@ -91,7 +91,7 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
         
         let isSimulate = call.getBool("simulating") ?? true
         
-        let routeOptions = NavigationRouteOptions(waypoints: waypoints, profileIdentifier: .automobile)
+        let routeOptions = NavigationRouteOptions(waypoints: waypoints, profileIdentifier: .cycling)
         
         Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
             switch result {
@@ -285,7 +285,7 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
     public func navigationViewController(_ navigationViewController: NavigationViewController, didUpdate progress: RouteProgress, with location: CLLocation, rawLocation: CLLocation) {
         do {
             let jsonEncoder = JSONEncoder()
-            let progressData = try jsonEncoder.encode(progress)
+            let progressData = try jsonEncoder.encode(progress.currentLegProgress)
             let progressJson = String(data: progressData, encoding: String.Encoding.utf8) ?? ""
             
             sendDataToCapacitor(status: "success", type: "on_progress_update", content: progressJson)

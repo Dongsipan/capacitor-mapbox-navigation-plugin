@@ -20,7 +20,7 @@ export interface MapboxResult {
 
 export interface MapboxNavOptions {
   routes: LocationOption[];
-  mapType?: string;
+  simulating?: boolean;
 }
 
 export interface LocationOption {

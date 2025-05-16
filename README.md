@@ -204,10 +204,10 @@ checkPermissions() => Promise<PermissionStatus>
 
 #### MapboxNavOptions
 
-| Prop          | Type                          |
-| ------------- | ----------------------------- |
-| **`routes`**  | <code>LocationOption[]</code> |
-| **`mapType`** | <code>string</code>           |
+| Prop             | Type                          |
+| ---------------- | ----------------------------- |
+| **`routes`**     | <code>LocationOption[]</code> |
+| **`simulating`** | <code>boolean</code>          |
 
 
 #### LocationOption

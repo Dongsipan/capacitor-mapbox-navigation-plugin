@@ -1,0 +1,10 @@
+allprojects {
+    repositories {
+        // 替换为阿里云镜像（速度更快）
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/google/' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin/' }
+        mavenCentral()
+        google()
+    }
+}
