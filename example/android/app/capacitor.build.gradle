@@ -9,7 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-    implementation project(':atoui-zahreddine-capacitor-mapbox-navigation')
+    implementation project(':dongsp-capacitor-mapbox-navigation')
     implementation project(':capacitor-camera')
     implementation project(':capacitor-geolocation')
     implementation project(':capacitor-splash-screen')

@@ -14,7 +14,7 @@
     "sync": "npx cap sync"
   },
   "dependencies": {
-    "@atoui-zahreddine/capacitor-mapbox-navigation": "../",
+    "@dongsp/capacitor-mapbox-navigation": "../",
     "@capacitor/camera": "latest",
     "@capacitor/core": "latest",
     "@capacitor/geolocation": "^6.0.1",

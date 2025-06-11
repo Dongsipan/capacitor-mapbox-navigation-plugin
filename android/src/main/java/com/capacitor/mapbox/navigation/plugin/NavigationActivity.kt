@@ -11,6 +11,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.capacitor.mapbox.navigation.plugin.databinding.MapboxActivityNavigationViewBinding
+import com.google.gson.Gson
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
@@ -312,6 +313,19 @@ class NavigationActivity : AppCompatActivity() {
         binding.tripProgressView.render(
                 tripProgressApi.getTripProgress(routeProgress)
         )
+
+        try {
+            val currentLegProgress = routeProgress.currentLegProgress
+            val gson = Gson()
+            val progressJson = gson.toJson(currentLegProgress)
+            sendDataToCapacitor(
+                status = "success",
+                type = "on_progress_update",
+                content = progressJson
+            )
+        } catch (e: Exception) {
+            Log.e("Mapbox Navigation", "onFailure: 序列化失败: ${e.localizedMessage}")
+        }
     }
 
     /**

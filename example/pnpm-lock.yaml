@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@atoui-zahreddine/capacitor-mapbox-navigation':
-    specifier: ../
-    version: link:..
   '@capacitor/camera':
     specifier: latest
     version: 6.0.2(@capacitor/core@6.1.2)
@@ -20,6 +17,9 @@ dependencies:
   '@capacitor/splash-screen':
     specifier: latest
     version: 6.0.2(@capacitor/core@6.1.2)
+  '@dongsp/capacitor-mapbox-navigation':
+    specifier: ../
+    version: link:..
 
 devDependencies:
   '@capacitor/cli':

@@ -61,6 +61,18 @@ repositories {
     google()
     jcenter()
     mavenCentral()
+    // 添加 Mapbox 官方仓库（关键）
+        maven {
+            url 'https://api.mapbox.com/downloads/v2/releases/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                // 使用你的 Mapbox Access Token（需替换为实际值）
+                username = 'mapbox'
+                password = project.findProperty('MAPBOX_ACCESS_TOKEN') ?: ''
+            }
+        }
 }
 
 

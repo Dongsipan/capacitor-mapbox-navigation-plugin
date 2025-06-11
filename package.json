@@ -1,5 +1,5 @@
 {
-  "name": "@atoui-zahreddine/capacitor-mapbox-navigation",
+  "name": "@dongsp/capacitor-mapbox-navigation",
   "version": "1.12.0",
   "description": "This is a plugin for mapbox navigation.",
   "main": "dist/plugin.cjs.js",
@@ -11,16 +11,16 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "AtouiZahreddineCapacitorMapboxNavigation.podspec"
+    "DongSiPanCapacitorMapboxNavigation.podspec"
   ],
-  "author": "Zahreddine Atoui",
+  "author": "DongSiPan",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/atoui-zahreddine/capacitor-mapbox-navigation.git"
+    "url": "git+https://github.com/Dongsipan/capacitor-mapbox-navigation.git"
   },
   "bugs": {
-    "url": "https://github.com/atoui-zahreddine/capacitor-mapbox-navigation.git/issues"
+    "url": "https://github.com/Dongsipan/capacitor-mapbox-navigation.git/issues"
   },
   "keywords": [
     "capacitor",

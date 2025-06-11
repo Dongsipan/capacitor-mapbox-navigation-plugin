@@ -1,5 +1,5 @@
-import { CapacitorMapboxNavigation } from '@atoui-zahreddine/capacitor-mapbox-navigation'
 import { Geolocation } from '@capacitor/geolocation'
+import { CapacitorMapboxNavigation } from '@dongsp/capacitor-mapbox-navigation'
 
 const navigateBtn = document.getElementById('navigate-btn')
 
