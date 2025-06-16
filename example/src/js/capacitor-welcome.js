@@ -24,9 +24,13 @@ export const navigateToAddressWithMapbox = async ({
   }
 }
 const startNavigation = async ({ latitude, longitude }) => {
-  const location = await Geolocation.getCurrentPosition({
-    enableHighAccuracy: true,
-  })
+  // const location = await Geolocation.getCurrentPosition({
+  //   enableHighAccuracy: true,
+  // })
+
+  const location = {"timestamp":1750063181699,"coords":{"accuracy":40,"latitude":31.297905645089603,"longitude":120.54365934218187,"altitude":0,"altitudeAccuracy":null,"heading":null,"speed":null}}
+
+  console.log(location)
 
   const result = await CapacitorMapboxNavigation.show({
     routes: [
