@@ -40,6 +40,7 @@ const startNavigation = async ({ latitude, longitude }) => {
       },
       { latitude: latitude, longitude: longitude },
     ],
+    simulating: true,
   })
 
   if (result?.status === 'failure') {

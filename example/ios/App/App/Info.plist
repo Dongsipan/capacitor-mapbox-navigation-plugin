@@ -23,7 +23,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MBXAccessToken</key>
-	<string>sk.eyJ1IjoicHd1YnBkam4iLCJhIjoiY21hZ2oyencxMDFtcjJsczdwMGV0NTEyayJ9.MueQLGmO1Wq_gwhhV41jVA</string>
+	<string>pk.eyJ1IjoicHd1YnBkam4iLCJhIjoiY21jMGIxb3d1MDBlaTJrczc4cHh3MWFlcCJ9.k7Qk1gP-pVGrHBwAFUuHaA</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access needed</string>
 	<key>UIBackgroundModes</key>
