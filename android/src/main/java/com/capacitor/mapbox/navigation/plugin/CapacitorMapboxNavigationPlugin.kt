@@ -59,7 +59,7 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
             intent.putExtra("toLat", toLat)
             intent.putExtra("toLng", toLng)
 
-            val simulate = call.getBoolean("simulate", true)
+            val simulate = call.getBoolean("simulating", true)
             intent.putExtra("simulate",simulate)
 
             startActivityForResult(call, intent, "navigationCallback")
