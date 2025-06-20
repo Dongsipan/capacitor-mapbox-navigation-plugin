@@ -286,11 +286,6 @@ class NavigationActivity : AppCompatActivity() {
         override fun onRouteProgressChanged(routeProgress: RouteProgress) {
             // 打印 RouteProgress 数据
             Log.d("Mapbox Navigation", "RouteProgress: $routeProgress")
-            sendDataToCapacitor(
-                status = "success",
-                type = "on_progress_update",
-                content = ""
-            )
             // update the camera position to account for the progressed fragment of the route
             viewportDataSource.onRouteProgressChanged(routeProgress)
             viewportDataSource.evaluate()
