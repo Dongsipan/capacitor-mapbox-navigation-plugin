@@ -22,6 +22,19 @@ import com.getcapacitor.annotation.PermissionCallback
 )
 class CapacitorMapboxNavigationPlugin : Plugin() {
     private val implementation = CapacitorMapboxNavigation()
+    private var currentCall: PluginCall? = null
+    companion object {
+        private var instance: CapacitorMapboxNavigationPlugin? = null
+
+        fun getInstance(): CapacitorMapboxNavigationPlugin? {
+            return instance
+        }
+    }
+
+    override fun load() {
+        super.load()
+        instance = this
+    }
 
     @PluginMethod
     fun echo(call: PluginCall) {
@@ -37,6 +50,8 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
         if(getPermissionState("location") != PermissionState.GRANTED){
             requestPermissionForAlias( "location",call, "permissionCallback")
         } else {
+            call.setKeepAlive(true)
+            currentCall = call
             startNavigation(call)
         }
     }
@@ -89,6 +104,7 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
         data.put("data",resultData)
 
         call.resolve(data)
+        currentCall = null
     }
     @PermissionCallback
     private fun permissionCallback(call: PluginCall) {
@@ -97,5 +113,12 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
         } else {
             call.reject("Permission is required to take a picture");
         }
+    }
+    fun getCurrentCall(): PluginCall? {
+        return currentCall
+    }
+
+    fun releaseCurrentCall() {
+        currentCall = null
     }
 }

@@ -11,7 +11,10 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.capacitor.mapbox.navigation.plugin.databinding.MapboxActivityNavigationViewBinding
+import com.getcapacitor.JSObject
+import com.getcapacitor.PluginCall
 import com.google.gson.Gson
+import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.bindgen.Expected
 import com.mapbox.geojson.Point
@@ -69,6 +72,11 @@ class NavigationActivity : AppCompatActivity() {
 
     private companion object {
         private const val BUTTON_ANIMATION_DURATION = 1500L
+        private var currentCall: PluginCall? = null
+
+        fun setCurrentCall(call: PluginCall?) {
+            currentCall = call
+        }
     }
 
 
@@ -286,6 +294,11 @@ class NavigationActivity : AppCompatActivity() {
         override fun onRouteProgressChanged(routeProgress: RouteProgress) {
             // 打印 RouteProgress 数据
             Log.d("Mapbox Navigation", "RouteProgress: $routeProgress")
+            sendDataToCapacitor(
+                status = "success",
+                type = "on_progress_update",
+                content = Gson().toJson(routeProgress)
+            )
             // update the camera position to account for the progressed fragment of the route
             viewportDataSource.onRouteProgressChanged(routeProgress)
             viewportDataSource.evaluate()
@@ -318,19 +331,6 @@ class NavigationActivity : AppCompatActivity() {
                 tripProgressApi.getTripProgress(routeProgress)
             )
         }
-
-//        try {
-//            val currentLegProgress = routeProgress.currentLegProgress
-//            val gson = Gson()
-//            val progressJson = gson.toJson(currentLegProgress)
-//            sendDataToCapacitor(
-//                status = "success",
-//                type = "on_progress_update",
-//                content = progressJson
-//            )
-//        } catch (e: Exception) {
-//            Log.e("Mapbox Navigation", "onFailure: 序列化失败: ${e.localizedMessage}")
-//        }
     }
 
     /**
@@ -404,7 +404,9 @@ class NavigationActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // 从插件获取当前调用并存储到静态变量
+        val plugin = CapacitorMapboxNavigationPlugin.getInstance()
+        setCurrentCall(plugin?.getCurrentCall())
         // Keep the screen on during navigation
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -526,7 +528,7 @@ class NavigationActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-
+        currentCall = null
         mapboxReplayer.stop()
         maneuverApi.cancel()
         routeLineApi.cancel()
@@ -571,10 +573,11 @@ class NavigationActivity : AppCompatActivity() {
         // to allow for support of all the Navigation SDK features
         mapboxNavigation.requestRoutes(
             RouteOptions.builder()
-                .applyDefaultNavigationOptions()
+                .applyDefaultNavigationOptions(DirectionsCriteria.PROFILE_CYCLING)
                 .applyLanguageAndVoiceUnitOptions(this)
                 .coordinatesList(listOf(origin, destination))
                 .layersList(listOf(mapboxNavigation.getZLevel(), null))
+                .alternatives(true)
                 .build(),
             object : NavigationRouterCallback {
                 override fun onCanceled(
@@ -582,12 +585,20 @@ class NavigationActivity : AppCompatActivity() {
                     @RouterOrigin routerOrigin: String
                 ) {
                     Log.e("Mapbox Navigation", "onCanceled")
-                    sendDataToCapacitor("failure", "on_cancelled", "Route Navigation cancelled")
+                    finishNavigation(
+                        status = "failure",
+                        type = "on_cancelled",
+                        content = "Route Navigation cancelled"
+                    )
                 }
 
                 override fun onFailure(reasons: List<RouterFailure>, routeOptions: RouteOptions) {
                     Log.e("Mapbox Navigation", "onFailure: $reasons")
-                    sendDataToCapacitor("failure", "on_failure", "No routes found")
+                    finishNavigation(
+                        status = "failure",
+                        type = "on_failure",
+                        content = "Failed to calculate route"
+                    )
                 }
 
                 override fun onRoutesReady(
@@ -617,15 +628,25 @@ class NavigationActivity : AppCompatActivity() {
     }
 
     private fun sendDataToCapacitor(status: String, type: String, content: String) {
-        val intent = Intent()
-        val data = Bundle()
+        runOnUiThread {
+            currentCall?.let { call ->
+                val result = JSObject()
+                result.put("status", status)
+                result.put("type", type)
+                result.put("data", content)
 
-        data.putString("status", status)
-        data.putString("type", type)
-        data.putString("data", content)
+                // 使用 resolve() 发送实时数据（不结束调用）
+                call.resolve(result)
+            }
+        }
+    }
 
-        intent.putExtras(data)
-        setResult(RESULT_OK, intent)
+    // 导航完成时调用，结束调用并关闭 Activity
+    private fun finishNavigation(status: String, type: String, content: String) {
+        sendDataToCapacitor(status, type, content)
+
+        // 释放引用并结束 Activity
+        currentCall = null
         finish()
     }
 
