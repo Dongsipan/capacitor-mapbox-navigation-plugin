@@ -1,4 +1,5 @@
 import type { PermissionState } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core/types/definitions';
 
 export interface CapacitorMapboxNavigationPlugin {
   echo(options: { value: string }): Promise<{ value: string }>;
@@ -6,6 +7,8 @@ export interface CapacitorMapboxNavigationPlugin {
   history(): Promise<any>;
   requestPermissions(): Promise<PermissionStatus>;
   checkPermissions(): Promise<PermissionStatus>;
+  addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any): Promise<PluginListenerHandle>;
+  removeAllListeners(): Promise<void>;
 }
 
 export interface PermissionStatus {

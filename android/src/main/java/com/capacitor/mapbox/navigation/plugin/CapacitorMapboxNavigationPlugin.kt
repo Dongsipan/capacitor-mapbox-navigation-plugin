@@ -121,4 +121,8 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
     fun releaseCurrentCall() {
         currentCall = null
     }
+
+    fun triggerRouteProgressEvent(data: JSObject) {
+        notifyListeners("onRouteProgressChange", data)
+    }
 }

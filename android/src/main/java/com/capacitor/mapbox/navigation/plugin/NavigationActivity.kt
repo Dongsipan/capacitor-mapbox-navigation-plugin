@@ -296,7 +296,7 @@ class NavigationActivity : AppCompatActivity() {
             Log.d("Mapbox Navigation", "RouteProgress: $routeProgress")
             sendDataToCapacitor(
                 status = "success",
-                type = "on_progress_update",
+                type = "onRouteProgressChange",
                 content = Gson().toJson(routeProgress)
             )
             // update the camera position to account for the progressed fragment of the route
@@ -629,14 +629,18 @@ class NavigationActivity : AppCompatActivity() {
 
     private fun sendDataToCapacitor(status: String, type: String, content: String) {
         runOnUiThread {
-            currentCall?.let { call ->
-                val result = JSObject()
-                result.put("status", status)
-                result.put("type", type)
-                result.put("data", content)
+            val plugin = CapacitorMapboxNavigationPlugin.getInstance()
+            val result = JSObject()
+            result.put("status", status)
+            result.put("type", type)
+            result.put("data", content)
 
-                // 使用 resolve() 发送实时数据（不结束调用）
-                call.resolve(result)
+            if (type == "onRouteProgressChange") {
+                // 导航进度更新使用事件通知
+                plugin?.triggerRouteProgressEvent(result)
+            } else {
+                // 其他类型使用Promise回调
+                currentCall?.resolve(result)
             }
         }
     }

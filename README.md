@@ -119,6 +119,8 @@ If you plan to display the user's location on the map or get the user's location
 * [`history()`](#history)
 * [`requestPermissions()`](#requestpermissions)
 * [`checkPermissions()`](#checkpermissions)
+* [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
+* [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -190,6 +192,31 @@ checkPermissions() => Promise<PermissionStatus>
 --------------------
 
 
+### addListener('onRouteProgressChange', ...)
+
+```typescript
+addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any) => Promise<PluginListenerHandle>
+```
+
+| Param              | Type                                 |
+| ------------------ | ------------------------------------ |
+| **`eventName`**    | <code>'onRouteProgressChange'</code> |
+| **`listenerFunc`** | <code>(data: any) =&gt; any</code>   |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### removeAllListeners()
+
+```typescript
+removeAllListeners() => Promise<void>
+```
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -223,6 +250,13 @@ checkPermissions() => Promise<PermissionStatus>
 | Prop           | Type                                                        |
 | -------------- | ----------------------------------------------------------- |
 | **`location`** | <code><a href="#permissionstate">PermissionState</a></code> |
+
+
+#### PluginListenerHandle
+
+| Prop         | Type                                      |
+| ------------ | ----------------------------------------- |
+| **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
 
 
 ### Type Aliases
