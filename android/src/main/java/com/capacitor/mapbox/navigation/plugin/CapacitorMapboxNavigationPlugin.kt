@@ -123,6 +123,8 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
     }
 
     fun triggerRouteProgressEvent(data: JSObject) {
-        notifyListeners("onRouteProgressChange", data)
+        if (hasListeners("onRouteProgressChange")) {
+            notifyListeners("onRouteProgressChange", data)
+        }
     }
 }

@@ -507,7 +507,7 @@ class NavigationActivity : AppCompatActivity() {
 
         // initialize view interactions
         binding.stop.setOnClickListener {
-            sendDataToCapacitor("success", "on_stop", "Navigation finished")
+            finishNavigation("success", "on_stop", "Navigation finished")
         }
         binding.recenter.setOnClickListener {
             navigationCamera.requestNavigationCameraToFollowing()
