@@ -285,11 +285,17 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             let progressData = try jsonEncoder.encode(progress.currentLegProgress)
             if let progressJson = String(data: progressData, encoding: String.Encoding.utf8) {
                 let data = ["status": "success", "content": progressJson]
-                notifyListeners("onRouteProgressChange", data: data)
+                DispatchQueue.main.async {
+                    guard self.hasListeners("onRouteProgressChange") else { return }
+                    self.notifyListeners("onRouteProgressChange", data: data)
+                }
             }
         } catch {
             let data = ["status": "failure", "content": "Error encoding route progress data: \(error.localizedDescription)"]
-            notifyListeners("onRouteProgressChange", data: data)
+            DispatchQueue.main.async {
+                guard self.hasListeners("onRouteProgressChange") else { return }
+                self.notifyListeners("onRouteProgressChange", data: data)
+            }
         }
     }
 
