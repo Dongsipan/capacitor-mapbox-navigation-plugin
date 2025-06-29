@@ -8,6 +8,7 @@ export interface CapacitorMapboxNavigationPlugin {
   requestPermissions(): Promise<PermissionStatus>;
   checkPermissions(): Promise<PermissionStatus>;
   addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any): Promise<PluginListenerHandle>;
+  addListener(eventName: 'startScreenMirroring', listenerFunc: (data: StartScreenMirroringEvent) => any): Promise<PluginListenerHandle>;
   removeAllListeners(): Promise<void>;
 }
 
@@ -34,4 +35,8 @@ export interface MapboxNavOptions {
 export interface LocationOption {
   latitude: number;
   longitude: number;
+}
+
+export interface StartScreenMirroringEvent {
+  enabled: boolean;
 }

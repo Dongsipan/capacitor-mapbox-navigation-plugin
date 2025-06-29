@@ -120,6 +120,7 @@ If you plan to display the user's location on the map or get the user's location
 * [`requestPermissions()`](#requestpermissions)
 * [`checkPermissions()`](#checkpermissions)
 * [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
+* [`addListener('startScreenMirroring', ...)`](#addlistenerstartscreenmirroring-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
@@ -208,6 +209,22 @@ addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any
 --------------------
 
 
+### addListener('startScreenMirroring', ...)
+
+```typescript
+addListener(eventName: 'startScreenMirroring', listenerFunc: (data: StartScreenMirroringEvent) => any) => Promise<PluginListenerHandle>
+```
+
+| Param              | Type                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'startScreenMirroring'</code>                                                               |
+| **`listenerFunc`** | <code>(data: <a href="#startscreenmirroringevent">StartScreenMirroringEvent</a>) =&gt; any</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
 ### removeAllListeners()
 
 ```typescript
@@ -257,6 +274,13 @@ removeAllListeners() => Promise<void>
 | Prop         | Type                                      |
 | ------------ | ----------------------------------------- |
 | **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
+
+
+#### StartScreenMirroringEvent
+
+| Prop          | Type                 |
+| ------------- | -------------------- |
+| **`enabled`** | <code>boolean</code> |
 
 
 ### Type Aliases

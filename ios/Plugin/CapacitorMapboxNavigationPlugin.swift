@@ -114,7 +114,22 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
 
                 DispatchQueue.main.async {
                     self?.setCenteredPopover(viewController)
-                    self?.bridge?.viewController?.present(viewController, animated: true, completion: nil)
+                    self?.bridge?.viewController?.present(viewController, animated: true, completion: {
+                        // 显示投屏确认弹窗
+                        let alert = UIAlertController(title: "开启投屏", message: "是否要开启投屏功能？", preferredStyle: .alert)
+                        
+                        // 取消按钮
+                        alert.addAction(UIAlertAction(title: "取消", style: .cancel, handler: { _ in
+                            self?.notifyListeners("startScreenMirroring", data: ["enabled": false])
+                        }))
+                        
+                        // 开启按钮 - 发送事件到Capacitor
+                        alert.addAction(UIAlertAction(title: "开启", style: .default, handler: { _ in
+                            self?.notifyListeners("startScreenMirroring", data: ["enabled": true])
+                        }))
+                        
+                        viewController.present(alert, animated: true, completion: nil)
+                    })
                 }
             }
         }
