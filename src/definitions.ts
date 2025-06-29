@@ -9,6 +9,8 @@ export interface CapacitorMapboxNavigationPlugin {
   checkPermissions(): Promise<PermissionStatus>;
   addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any): Promise<PluginListenerHandle>;
   addListener(eventName: 'startScreenMirroring', listenerFunc: (data: StartScreenMirroringEvent) => any): Promise<PluginListenerHandle>;
+  addListener(eventName: 'plusButtonClicked', listenerFunc: (data: Record<string, never>) => any): Promise<PluginListenerHandle>;
+  addListener(eventName: 'minusButtonClicked', listenerFunc: (data: Record<string, never>) => any): Promise<PluginListenerHandle>;
   removeAllListeners(): Promise<void>;
 }
 

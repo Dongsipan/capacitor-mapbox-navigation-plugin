@@ -129,6 +129,53 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
                         }))
                         
                         viewController.present(alert, animated: true, completion: nil)
+                
+                        // 创建垂直按钮容器
+                            let buttonContainer = UIView()
+                            buttonContainer.translatesAutoresizingMaskIntoConstraints = false
+                            viewController.view.addSubview(buttonContainer)
+                            
+                            // 创建加号按钮
+                            let plusButton = UIButton(type: .system)
+                            plusButton.setTitle("+", for: .normal)
+                            plusButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+                            guard let self = self else { return }
+                            plusButton.addTarget(self, action: #selector(self.plusButtonTapped), for: .touchUpInside)
+                            plusButton.backgroundColor = .white
+                            plusButton.layer.cornerRadius = 25
+                            plusButton.translatesAutoresizingMaskIntoConstraints = false
+                            buttonContainer.addSubview(plusButton)
+                            
+                            // 创建减号按钮
+                            let minusButton = UIButton(type: .system)
+                            minusButton.setTitle("-", for: .normal)
+                            minusButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+                            minusButton.addTarget(self, action: #selector(self.minusButtonTapped), for: .touchUpInside)
+                            minusButton.backgroundColor = .white
+                            minusButton.layer.cornerRadius = 25
+                            minusButton.translatesAutoresizingMaskIntoConstraints = false
+                            buttonContainer.addSubview(minusButton)
+                            
+                            // 设置按钮容器约束 - 右侧中间
+                            NSLayoutConstraint.activate([
+                                buttonContainer.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor, constant: -20),
+                                buttonContainer.centerYAnchor.constraint(equalTo: viewController.view.centerYAnchor),
+                                buttonContainer.widthAnchor.constraint(equalToConstant: 50)
+                            ])
+                            
+                            // 设置按钮约束 - 垂直排列
+                            NSLayoutConstraint.activate([
+                                plusButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+                                plusButton.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
+                                plusButton.widthAnchor.constraint(equalToConstant: 50),
+                                plusButton.heightAnchor.constraint(equalToConstant: 50),
+                                
+                                minusButton.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 10),
+                                minusButton.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
+                                minusButton.widthAnchor.constraint(equalToConstant: 50),
+                                minusButton.heightAnchor.constraint(equalToConstant: 50),
+                                minusButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor)
+                            ])
                     })
                 }
             }
@@ -322,5 +369,13 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             bridge?.releaseCall(call)
         }
 
+    }
+    
+    @objc func plusButtonTapped() {
+        notifyListeners("plusButtonClicked", data: [:])
+    }
+    
+    @objc func minusButtonTapped() {
+        notifyListeners("minusButtonClicked", data: [:])
     }
 }

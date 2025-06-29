@@ -121,6 +121,8 @@ If you plan to display the user's location on the map or get the user's location
 * [`checkPermissions()`](#checkpermissions)
 * [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
 * [`addListener('startScreenMirroring', ...)`](#addlistenerstartscreenmirroring-)
+* [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
+* [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
@@ -225,6 +227,38 @@ addListener(eventName: 'startScreenMirroring', listenerFunc: (data: StartScreenM
 --------------------
 
 
+### addListener('plusButtonClicked', ...)
+
+```typescript
+addListener(eventName: 'plusButtonClicked', listenerFunc: (data: Record<string, never>) => any) => Promise<PluginListenerHandle>
+```
+
+| Param              | Type                                                                             |
+| ------------------ | -------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'plusButtonClicked'</code>                                                 |
+| **`listenerFunc`** | <code>(data: <a href="#record">Record</a>&lt;string, never&gt;) =&gt; any</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('minusButtonClicked', ...)
+
+```typescript
+addListener(eventName: 'minusButtonClicked', listenerFunc: (data: Record<string, never>) => any) => Promise<PluginListenerHandle>
+```
+
+| Param              | Type                                                                             |
+| ------------------ | -------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'minusButtonClicked'</code>                                                |
+| **`listenerFunc`** | <code>(data: <a href="#record">Record</a>&lt;string, never&gt;) =&gt; any</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
 ### removeAllListeners()
 
 ```typescript
@@ -289,5 +323,12 @@ removeAllListeners() => Promise<void>
 #### PermissionState
 
 <code>'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'</code>
+
+
+#### Record
+
+Construct a type with a set of properties K of type T
+
+<code>{ [P in K]: T; }</code>
 
 </docgen-api>
