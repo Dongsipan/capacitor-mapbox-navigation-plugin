@@ -127,4 +127,22 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
             notifyListeners("onRouteProgressChange", data)
         }
     }
+
+    fun triggerScreenMirroringEvent(data: JSObject) {
+        if (hasListeners("onScreenMirroringChange")) {
+            notifyListeners("onScreenMirroringChange", data)
+        }
+    }
+
+    fun triggerPlusButtonClicked(data: JSObject) {
+        if (hasListeners("plusButtonClicked")) {
+            notifyListeners("plusButtonClicked", data)
+        }
+    }
+
+    fun triggerMinusButtonClicked(data: JSObject) {
+        if (hasListeners("minusButtonClicked")) {
+            notifyListeners("minusButtonClicked", data)
+        }
+    }
 }

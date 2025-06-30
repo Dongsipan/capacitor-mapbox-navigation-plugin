@@ -1,15 +1,23 @@
 package com.capacitor.mapbox.navigation.plugin
 
 import android.annotation.SuppressLint
-import android.content.Intent
+import android.app.AlertDialog
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.capacitor.mapbox.navigation.plugin.databinding.MapboxActivityNavigationViewBinding
 import com.getcapacitor.JSObject
 import com.getcapacitor.PluginCall
@@ -44,7 +52,11 @@ import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
 import com.mapbox.navigation.tripdata.maneuver.api.MapboxManeuverApi
 import com.mapbox.navigation.tripdata.progress.api.MapboxTripProgressApi
-import com.mapbox.navigation.tripdata.progress.model.*
+import com.mapbox.navigation.tripdata.progress.model.DistanceRemainingFormatter
+import com.mapbox.navigation.tripdata.progress.model.EstimatedTimeToArrivalFormatter
+import com.mapbox.navigation.tripdata.progress.model.PercentDistanceTraveledFormatter
+import com.mapbox.navigation.tripdata.progress.model.TimeRemainingFormatter
+import com.mapbox.navigation.tripdata.progress.model.TripProgressUpdateFormatter
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.ui.maps.NavigationStyles
 import com.mapbox.navigation.ui.maps.camera.NavigationCamera
@@ -66,7 +78,7 @@ import com.mapbox.navigation.voice.model.SpeechAnnouncement
 import com.mapbox.navigation.voice.model.SpeechError
 import com.mapbox.navigation.voice.model.SpeechValue
 import com.mapbox.navigation.voice.model.SpeechVolume
-import java.util.*
+import java.util.Locale
 
 class NavigationActivity : AppCompatActivity() {
 
@@ -402,6 +414,78 @@ class NavigationActivity : AppCompatActivity() {
     )
 
     @SuppressLint("MissingPermission")
+    // DP to PX conversion utility method
+    private fun Int.dpToPx(): Int {
+        return (this * Resources.getSystem().displayMetrics.density).toInt()
+    }
+
+    private fun setupControlButtons() {
+        val buttonSize = 50.dpToPx()
+        val buttonMargin = 8.dpToPx()
+
+        // Create plus button
+        val plusButton = Button(this).apply {
+            text = "+"
+            textSize = 24f
+            setBackgroundColor(Color.WHITE)
+            setTextColor(Color.BLACK)
+            layoutParams = LinearLayout.LayoutParams(buttonSize, buttonSize)
+            setOnClickListener {
+                val data = JSObject()
+                CapacitorMapboxNavigationPlugin.getInstance()?.triggerPlusButtonClicked(data)
+            }
+            // Set rounded corners
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.WHITE)
+            }
+            // Add shadow
+            elevation = 4.dpToPx().toFloat()
+        }
+
+        // Create minus button
+        val minusButton = Button(this).apply {
+            text = "-"
+            textSize = 24f
+            setBackgroundColor(Color.WHITE)
+            setTextColor(Color.BLACK)
+            layoutParams = LinearLayout.LayoutParams(buttonSize, buttonSize).apply {
+                topMargin = buttonMargin
+            }
+            setOnClickListener {
+                val data = JSObject()
+                CapacitorMapboxNavigationPlugin.getInstance()?.triggerMinusButtonClicked(data)
+            }
+            // Set rounded corners
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.WHITE)
+            }
+            // Add shadow
+            elevation = 4.dpToPx().toFloat()
+        }
+
+        // Create vertical container for buttons
+        val buttonContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            id = View.generateViewId()
+            layoutParams = ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                ConstraintLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                marginEnd = 20.dpToPx()
+            }
+            addView(plusButton)
+            addView(minusButton)
+        }
+
+        // Add buttons to root view
+        (binding.root as ViewGroup).addView(buttonContainer)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 从插件获取当前调用并存储到静态变量
@@ -412,6 +496,9 @@ class NavigationActivity : AppCompatActivity() {
 
         binding = MapboxActivityNavigationViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 设置按钮Setup control buttons (plus and minus)
+        setupControlButtons()
 
         // initialize Navigation Camera
         viewportDataSource = MapboxNavigationViewportDataSource(binding.mapView.mapboxMap)
@@ -622,6 +709,22 @@ class NavigationActivity : AppCompatActivity() {
         binding.tripProgressCard.visibility = View.VISIBLE
 
         isVoiceInstructionsMuted = !isVoiceInstructionsMuted
+
+        // Show screen mirroring confirmation dialog
+        AlertDialog.Builder(this)
+            .setTitle("投屏确认")
+            .setMessage("是否开启投屏？")
+            .setPositiveButton("开启") { _, _ ->
+                val data = JSObject()
+                data.put("enabled", true)
+                CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+            }
+            .setNegativeButton("取消") { _, _ ->
+                val data = JSObject()
+                data.put("enabled", false)
+                CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+            }
+            .show()
 
         // move the camera to overview when new route is available
         navigationCamera.requestNavigationCameraToFollowing()
