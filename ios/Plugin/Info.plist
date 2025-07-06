@@ -20,5 +20,7 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSPrincipalClass</key>
 	<string></string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>需要获取您的位置以提供导航服务</string>
 </dict>
 </plist>

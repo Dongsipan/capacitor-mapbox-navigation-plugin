@@ -24,6 +24,7 @@ func getNowString() -> String {
     formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ"
     return formatter.string(from: date)
 }
+
 @objc(CapacitorMapboxNavigationPlugin)
 public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControllerDelegate, CLLocationManagerDelegate {
 
@@ -35,6 +36,7 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
     }
     private var callQueue: [String: CallType] = [:]
     var isNavigationActive = false
+    var locationRequestCompletion: ((CLLocationCoordinate2D?) -> Void)?
 
     @objc override public func load() {
         // Called when the plugin is first constructed in the bridge
@@ -66,117 +68,116 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
         callbackId = call.callbackId
         lastLocation = Location(longitude: 0.0, latitude: 0.0)
         locationHistory?.removeAllObjects()
-
         routes = call.getArray("routes", NSDictionary.self) ?? [NSDictionary]()
-        var waypoints = [Waypoint]()
-
-        for route in routes {
-            if let latitude = route["latitude"] as? NSNumber,
-               let longitude = route["longitude"] as? NSNumber {
-
-                let lat = latitude.doubleValue
-                let lon = longitude.doubleValue
-
-                print(lat)
-                print(lon)
-                let waypoint = Waypoint(coordinate: CLLocationCoordinate2DMake(lat, lon))
-                waypoints.append(waypoint)
-            } else {
-                print("Failed to convert latitude and longitude to NSNumber")
-                sendDataToCapacitor(status: "failure", type: "on_failure", content: "Failed to convert latitude and longitude to NSNumber")
+        
+        // 先获取当前位置
+        getCurrentLocation { [weak self] coordinate in
+            guard let self = self, let startCoord = coordinate else {
+                self?.sendDataToCapacitor(status: "failure", type: "on_failure", content: "无法获取当前位置")
                 return
             }
-        }
-
-        let isSimulate = call.getBool("simulating") ?? true
-
-        let routeOptions = NavigationRouteOptions(waypoints: waypoints, profileIdentifier: .cycling)
-
-        Directions.shared.calculate(routeOptions) { [weak self] (_, result) in
-            switch result {
-            case .failure(let error):
-                print(error.localizedDescription)
-                self?.sendDataToCapacitor(status: "failure", type: "on_failure", content: "no routes found")
-            case .success(let response):
-                guard let route = response.routes?.first, let strongSelf = self else {
+            var waypoints = [Waypoint(coordinate: startCoord)]
+            // routes 作为后续 waypoint
+            for route in routes {
+                if let latitude = route["latitude"] as? NSNumber,
+                   let longitude = route["longitude"] as? NSNumber {
+                    let lat = latitude.doubleValue
+                    let lon = longitude.doubleValue
+                    let waypoint = Waypoint(coordinate: CLLocationCoordinate2DMake(lat, lon))
+                    waypoints.append(waypoint)
+                } else {
+                    self.sendDataToCapacitor(status: "failure", type: "on_failure", content: "Failed to convert latitude and longitude to NSNumber")
                     return
                 }
+            }
+            let isSimulate = call.getBool("simulating") ?? true
+            let routeOptions = NavigationRouteOptions(waypoints: waypoints, profileIdentifier: .cycling)
+            Directions.shared.calculate(routeOptions) { [weak self] (_, result) in
+                switch result {
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    self?.sendDataToCapacitor(status: "failure", type: "on_failure", content: "no routes found")
+                case .success(let response):
+                    guard let route = response.routes?.first, let strongSelf = self else {
+                        return
+                    }
 
-                let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: routeOptions, simulating: isSimulate ? .always : .never)
-                let navigationOptions = NavigationOptions(navigationService: navigationService)
+                    let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: routeOptions, simulating: isSimulate ? .always : .never)
+                    let navigationOptions = NavigationOptions(navigationService: navigationService)
 
-                let viewController = NavigationViewController(for: response, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
-                viewController.modalPresentationStyle = .overFullScreen
-                viewController.waypointStyle = .extrudedBuilding
-                viewController.delegate = strongSelf
+                    let viewController = NavigationViewController(for: response, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
+                    viewController.modalPresentationStyle = .overFullScreen
+                    viewController.waypointStyle = .extrudedBuilding
+                    viewController.delegate = strongSelf
 
-                self?.keepAwake()
+                    self?.keepAwake()
 
-                DispatchQueue.main.async {
-                    self?.setCenteredPopover(viewController)
-                    self?.bridge?.viewController?.present(viewController, animated: true, completion: {
-                        // 显示投屏确认弹窗
-                        let alert = UIAlertController(title: "开启投屏", message: "是否要开启投屏功能？", preferredStyle: .alert)
-                        
-                        // 取消按钮
-                        alert.addAction(UIAlertAction(title: "取消", style: .cancel, handler: { _ in
-                            self?.notifyListeners("startScreenMirroring", data: ["enabled": false])
-                        }))
-                        
-                        // 开启按钮 - 发送事件到Capacitor
-                        alert.addAction(UIAlertAction(title: "开启", style: .default, handler: { _ in
-                            self?.notifyListeners("startScreenMirroring", data: ["enabled": true])
-                        }))
-                        
-                        viewController.present(alert, animated: true, completion: nil)
-                
-                        // 创建垂直按钮容器
-                            let buttonContainer = UIView()
-                            buttonContainer.translatesAutoresizingMaskIntoConstraints = false
-                            viewController.view.addSubview(buttonContainer)
+                    DispatchQueue.main.async {
+                        self?.setCenteredPopover(viewController)
+                        self?.bridge?.viewController?.present(viewController, animated: true, completion: {
+                            // 显示投屏确认弹窗
+                            let alert = UIAlertController(title: "开启投屏", message: "是否要开启投屏功能？", preferredStyle: .alert)
                             
-                            // 创建加号按钮
-                            let plusButton = UIButton(type: .system)
-                            plusButton.setTitle("+", for: .normal)
-                            plusButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
-                            guard let self = self else { return }
-                            plusButton.addTarget(self, action: #selector(self.plusButtonTapped), for: .touchUpInside)
-                            plusButton.backgroundColor = .white
-                            plusButton.layer.cornerRadius = 25
-                            plusButton.translatesAutoresizingMaskIntoConstraints = false
-                            buttonContainer.addSubview(plusButton)
+                            // 取消按钮
+                            alert.addAction(UIAlertAction(title: "取消", style: .cancel, handler: { _ in
+                                self?.notifyListeners("startScreenMirroring", data: ["enabled": false])
+                            }))
                             
-                            // 创建减号按钮
-                            let minusButton = UIButton(type: .system)
-                            minusButton.setTitle("-", for: .normal)
-                            minusButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
-                            minusButton.addTarget(self, action: #selector(self.minusButtonTapped), for: .touchUpInside)
-                            minusButton.backgroundColor = .white
-                            minusButton.layer.cornerRadius = 25
-                            minusButton.translatesAutoresizingMaskIntoConstraints = false
-                            buttonContainer.addSubview(minusButton)
+                            // 开启按钮 - 发送事件到Capacitor
+                            alert.addAction(UIAlertAction(title: "开启", style: .default, handler: { _ in
+                                self?.notifyListeners("startScreenMirroring", data: ["enabled": true])
+                            }))
                             
-                            // 设置按钮容器约束 - 右侧中间
-                            NSLayoutConstraint.activate([
-                                buttonContainer.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor, constant: -20),
-                                buttonContainer.centerYAnchor.constraint(equalTo: viewController.view.centerYAnchor),
-                                buttonContainer.widthAnchor.constraint(equalToConstant: 50)
-                            ])
-                            
-                            // 设置按钮约束 - 垂直排列
-                            NSLayoutConstraint.activate([
-                                plusButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
-                                plusButton.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
-                                plusButton.widthAnchor.constraint(equalToConstant: 50),
-                                plusButton.heightAnchor.constraint(equalToConstant: 50),
+                            viewController.present(alert, animated: true, completion: nil)
+                    
+                            // 创建垂直按钮容器
+                                let buttonContainer = UIView()
+                                buttonContainer.translatesAutoresizingMaskIntoConstraints = false
+                                viewController.view.addSubview(buttonContainer)
                                 
-                                minusButton.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 10),
-                                minusButton.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
-                                minusButton.widthAnchor.constraint(equalToConstant: 50),
-                                minusButton.heightAnchor.constraint(equalToConstant: 50),
-                                minusButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor)
-                            ])
-                    })
+                                // 创建加号按钮
+                                let plusButton = UIButton(type: .system)
+                                plusButton.setTitle("+", for: .normal)
+                                plusButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+                                guard let self = self else { return }
+                                plusButton.addTarget(self, action: #selector(self.plusButtonTapped), for: .touchUpInside)
+                                plusButton.backgroundColor = .white
+                                plusButton.layer.cornerRadius = 25
+                                plusButton.translatesAutoresizingMaskIntoConstraints = false
+                                buttonContainer.addSubview(plusButton)
+                                
+                                // 创建减号按钮
+                                let minusButton = UIButton(type: .system)
+                                minusButton.setTitle("-", for: .normal)
+                                minusButton.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+                                minusButton.addTarget(self, action: #selector(self.minusButtonTapped), for: .touchUpInside)
+                                minusButton.backgroundColor = .white
+                                minusButton.layer.cornerRadius = 25
+                                minusButton.translatesAutoresizingMaskIntoConstraints = false
+                                buttonContainer.addSubview(minusButton)
+                                
+                                // 设置按钮容器约束 - 右侧中间
+                                NSLayoutConstraint.activate([
+                                    buttonContainer.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor, constant: -20),
+                                    buttonContainer.centerYAnchor.constraint(equalTo: viewController.view.centerYAnchor),
+                                    buttonContainer.widthAnchor.constraint(equalToConstant: 50)
+                                ])
+                                
+                                // 设置按钮约束 - 垂直排列
+                                NSLayoutConstraint.activate([
+                                    plusButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+                                    plusButton.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
+                                    plusButton.widthAnchor.constraint(equalToConstant: 50),
+                                    plusButton.heightAnchor.constraint(equalToConstant: 50),
+                                    
+                                    minusButton.topAnchor.constraint(equalTo: plusButton.bottomAnchor, constant: 10),
+                                    minusButton.centerXAnchor.constraint(equalTo: buttonContainer.centerXAnchor),
+                                    minusButton.widthAnchor.constraint(equalToConstant: 50),
+                                    minusButton.heightAnchor.constraint(equalToConstant: 50),
+                                    minusButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor)
+                                ])
+                        })
+                    }
                 }
             }
         }
@@ -220,7 +221,19 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
         }
     }
 
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+            locationRequestCompletion?(location.coordinate)
+            locationRequestCompletion = nil
+        } else {
+            locationRequestCompletion?(nil)
+            locationRequestCompletion = nil
+        }
+    }
+
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        locationRequestCompletion?(nil)
+        locationRequestCompletion = nil
         let removalQueue = callQueue.filter { $0.value == .permissions }
 
         for (id, _) in removalQueue {
@@ -377,5 +390,12 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
     
     @objc func minusButtonTapped() {
         notifyListeners("minusButtonClicked", data: [:])
+    }
+
+    func getCurrentLocation(completion: @escaping (CLLocationCoordinate2D?) -> Void) {
+        locationRequestCompletion = completion
+        self.locationManager.delegate = self
+        self.locationManager.requestWhenInUseAuthorization()
+        self.locationManager.requestLocation()
     }
 }
