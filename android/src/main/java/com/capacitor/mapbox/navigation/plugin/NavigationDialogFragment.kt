@@ -1,17 +1,21 @@
 package com.capacitor.mapbox.navigation.plugin
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import androidx.annotation.RequiresPermission
 import androidx.fragment.app.DialogFragment
 import com.capacitor.mapbox.navigation.plugin.databinding.MapboxActivityNavigationViewBinding
+import com.getcapacitor.JSObject
+import com.getcapacitor.PluginCall
+import com.google.gson.Gson
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.Point
@@ -23,9 +27,9 @@ import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
 import com.mapbox.navigation.base.formatter.DistanceFormatterOptions
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.route.NavigationRoute
+import com.mapbox.navigation.base.route.NavigationRouterCallback
 import com.mapbox.navigation.base.route.RouterFailure
 import com.mapbox.navigation.base.route.RouterOrigin
-import com.mapbox.navigation.base.route.NavigationRouterCallback
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.directions.session.RoutesObserver
@@ -58,13 +62,17 @@ import com.mapbox.navigation.ui.maps.route.line.model.MapboxRouteLineApiOptions
 import com.mapbox.navigation.ui.maps.route.line.model.MapboxRouteLineViewOptions
 import com.mapbox.navigation.voice.api.MapboxSpeechApi
 import com.mapbox.navigation.voice.api.MapboxVoiceInstructionsPlayer
-import com.mapbox.navigation.voice.model.SpeechAnnouncement
-import com.mapbox.navigation.voice.model.SpeechError
-import com.mapbox.navigation.voice.model.SpeechValue
 import com.mapbox.navigation.voice.model.SpeechVolume
 import java.util.Locale
 
 class NavigationDialogFragment : DialogFragment() {
+    private companion object {
+        private var currentCall: PluginCall? = null
+
+        fun setCurrentCall(call: PluginCall?) {
+            currentCall = call
+        }
+    }
 
     private val BUTTON_ANIMATION_DURATION = 300L
     private lateinit var binding: MapboxActivityNavigationViewBinding
@@ -134,6 +142,19 @@ class NavigationDialogFragment : DialogFragment() {
             binding.tripProgressView.render(
                 tripProgressApi.getTripProgress(routeProgress)
             )
+
+//            var currentProgressData = JSObject()
+//            currentProgressData.put("distanceRemaining", routeProgress.currentLegProgress?.distanceRemaining)
+//            currentProgressData.put("durationRemaining", routeProgress.currentLegProgress?.durationRemaining)
+//            currentProgressData.put("stepIndex", routeProgress.currentLegProgress?.currentStepProgress?.stepIndex)
+//            currentProgressData.put("step", routeProgress.currentLegProgress?.currentStepProgress?.step)
+//            currentProgressData.put("upcomingStep", routeProgress.currentLegProgress?.upcomingStep)
+            // 发送路线进度数据到Capacitor
+            sendDataToCapacitor(
+                status = "success",
+                type = "onRouteProgressChange",
+                content = Gson().toJson(routeProgress)
+            )
         }
     }
 
@@ -201,6 +222,10 @@ class NavigationDialogFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        // 从插件获取当前调用并存储到静态变量
+        val plugin = CapacitorMapboxNavigationPlugin.getInstance()
+        setCurrentCall(plugin?.getCurrentCall())
+        currentCall?.resolve()
         // 获取当前的 MapboxNavigation 实例
         mapboxNavigation = MapboxNavigationApp.current()!!
         binding = MapboxActivityNavigationViewBinding.inflate(inflater, container, false)
@@ -221,22 +246,23 @@ class NavigationDialogFragment : DialogFragment() {
     }
 
     override fun onDestroyView() {
-    super.onDestroyView()
-    // 解绑 MapboxNavigation 与 fragment 生命周期
-    MapboxNavigationApp.detach(this)
-    // 注销观察者
-    MapboxNavigationApp.unregisterObserver(navigationObserver)
-}
-
-override fun onStart() {
-    super.onStart()
-    dialog?.window?.apply {
-        setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        super.onDestroyView()
+        // 解绑 MapboxNavigation 与 fragment 生命周期
+        MapboxNavigationApp.detach(this)
+        // 注销观察者
+        MapboxNavigationApp.unregisterObserver(navigationObserver)
     }
-}
 
-override fun onDestroy() {
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.apply {
+            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
+    }
+
+    override fun onDestroy() {
+        currentCall = null
         super.onDestroy()
         if (::maneuverApi.isInitialized) maneuverApi.cancel()
         if (::routeLineApi.isInitialized) routeLineApi.cancel()
@@ -392,10 +418,22 @@ override fun onDestroy() {
                     routeOptions: RouteOptions,
                     @RouterOrigin routerOrigin: String
                 ) {
+                    Log.e("Mapbox Navigation", "onCanceled")
+                    finishNavigation(
+                        status = "failure",
+                        type = "on_cancelled",
+                        content = "Route Navigation cancelled"
+                    )
                     dismiss()
                 }
 
                 override fun onFailure(reasons: List<RouterFailure>, routeOptions: RouteOptions) {
+                    Log.e("Mapbox Navigation", "onFailure: $reasons")
+                    finishNavigation(
+                        status = "failure",
+                        type = "on_failure",
+                        content = "Failed to calculate route"
+                    )
                     dismiss()
                 }
 
@@ -415,6 +453,48 @@ override fun onDestroy() {
         binding.routeOverview.visibility = View.VISIBLE
         binding.tripProgressCard.visibility = View.VISIBLE
         isVoiceInstructionsMuted = !isVoiceInstructionsMuted
+         // Show screen mirroring confirmation dialog
+        AlertDialog.Builder(requireContext())
+            .setTitle("投屏确认")
+            .setMessage("是否开启投屏？")
+            .setPositiveButton("开启") { _, _ ->
+                val data = JSObject()
+                data.put("enabled", true)
+                CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+            }
+            .setNegativeButton("取消") { _, _ ->
+                val data = JSObject()
+                data.put("enabled", false)
+                CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+            }
+            .show()
         navigationCamera.requestNavigationCameraToFollowing()
+    }
+
+    // 导航完成时调用，结束调用并关闭 Activity
+    private fun finishNavigation(status: String, type: String, content: String) {
+        sendDataToCapacitor(status, type, content)
+
+        // 释放引用并结束 Activity
+        currentCall = null
+    }
+
+    /**
+     * 发送数据到Capacitor插件
+     */
+    private fun sendDataToCapacitor(status: String, type: String, content: String) {
+        val plugin = CapacitorMapboxNavigationPlugin.getInstance()
+        val result = JSObject()
+        result.put("status", status)
+        result.put("type", type)
+        result.put("data", content)
+
+        if (type == "onRouteProgressChange") {
+            // 导航进度更新使用事件通知
+            plugin?.triggerRouteProgressEvent(result)
+        } else {
+            // 其他类型使用Promise回调
+            currentCall?.resolve(result)
+        }
     }
 }

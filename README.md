@@ -120,7 +120,7 @@ If you plan to display the user's location on the map or get the user's location
 * [`requestPermissions()`](#requestpermissions)
 * [`checkPermissions()`](#checkpermissions)
 * [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
-* [`addListener('startScreenMirroring', ...)`](#addlistenerstartscreenmirroring-)
+* [`addListener('onScreenMirroringChange', ...)`](#addlisteneronscreenmirroringchange-)
 * [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
 * [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
 * [`removeAllListeners()`](#removealllisteners)
@@ -211,16 +211,16 @@ addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any
 --------------------
 
 
-### addListener('startScreenMirroring', ...)
+### addListener('onScreenMirroringChange', ...)
 
 ```typescript
-addListener(eventName: 'startScreenMirroring', listenerFunc: (data: StartScreenMirroringEvent) => any) => Promise<PluginListenerHandle>
+addListener(eventName: 'onScreenMirroringChange', listenerFunc: (data: ScreenMirroringChangeEvent) => any) => Promise<PluginListenerHandle>
 ```
 
-| Param              | Type                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------- |
-| **`eventName`**    | <code>'startScreenMirroring'</code>                                                               |
-| **`listenerFunc`** | <code>(data: <a href="#startscreenmirroringevent">StartScreenMirroringEvent</a>) =&gt; any</code> |
+| Param              | Type                                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'onScreenMirroringChange'</code>                                                              |
+| **`listenerFunc`** | <code>(data: <a href="#screenmirroringchangeevent">ScreenMirroringChangeEvent</a>) =&gt; any</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
@@ -310,7 +310,7 @@ removeAllListeners() => Promise<void>
 | **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
 
 
-#### StartScreenMirroringEvent
+#### ScreenMirroringChangeEvent
 
 | Prop          | Type                 |
 | ------------- | -------------------- |
