@@ -120,12 +120,12 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
                             
                             // 取消按钮
                             alert.addAction(UIAlertAction(title: "取消", style: .cancel, handler: { _ in
-                                self?.notifyListeners("startScreenMirroring", data: ["enabled": false])
+                                self?.notifyListeners("onScreenMirroringChange", data: ["enabled": false])
                             }))
                             
                             // 开启按钮 - 发送事件到Capacitor
                             alert.addAction(UIAlertAction(title: "开启", style: .default, handler: { _ in
-                                self?.notifyListeners("startScreenMirroring", data: ["enabled": true])
+                                self?.notifyListeners("onScreenMirroringChange", data: ["enabled": true])
                             }))
                             
                             viewController.present(alert, animated: true, completion: nil)
