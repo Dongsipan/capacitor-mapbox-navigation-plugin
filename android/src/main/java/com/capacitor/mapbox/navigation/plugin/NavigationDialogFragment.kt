@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -67,6 +69,7 @@ import java.util.Locale
 
 class NavigationDialogFragment : DialogFragment() {
     private companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
         private var currentCall: PluginCall? = null
 
         fun setCurrentCall(call: PluginCall?) {
@@ -103,6 +106,10 @@ class NavigationDialogFragment : DialogFragment() {
             viewportDataSource.evaluate()
             if (!firstLocationUpdateReceived) {
                 firstLocationUpdateReceived = true
+                currentLocation = Point.fromLngLat(enhancedLocation.longitude, enhancedLocation.latitude)
+                currentLocation?.let { origin ->
+                    destination?.let { findRoute(origin, it) }
+                }
                 navigationCamera.requestNavigationCameraToOverview(
                     stateTransitionOptions = NavigationCameraTransitionOptions.Builder()
                         .maxDuration(0)
@@ -188,6 +195,9 @@ class NavigationDialogFragment : DialogFragment() {
 
     private lateinit var mapboxNavigation: MapboxNavigation
 
+    private var currentLocation: Point? = null
+    private var destination: Point? = null
+
     // 独立的 MapboxNavigationObserver 实例
     private val navigationObserver = object : MapboxNavigationObserver {
         @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
@@ -232,9 +242,14 @@ class NavigationDialogFragment : DialogFragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View, savedInstanceState: Bundle?
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        // 检查位置权限
+        checkLocationPermissionAndRequestRoute()
 
         // 注册 MapboxNavigation 观察者
         MapboxNavigationApp.registerObserver(navigationObserver)
@@ -261,6 +276,46 @@ class NavigationDialogFragment : DialogFragment() {
         }
     }
 
+    private fun checkLocationPermissionAndRequestRoute() {
+        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            // 权限已授予，如果已有位置则立即请求路线
+            currentLocation?.let { origin ->
+                destination?.let { findRoute(origin, it) }
+            }
+        } else {
+            // 请求位置权限
+            requestPermissions(
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 权限授予，尝试请求路线
+                checkLocationPermissionAndRequestRoute()
+            } else {
+                // 权限被拒绝，发送错误事件并关闭对话框
+                sendDataToCapacitor(
+                    status = "error",
+                    type = "locationPermissionDenied",
+                    content = "位置权限被拒绝，无法获取当前位置"
+                )
+                dismiss()
+            }
+        }
+    }
+
     override fun onDestroy() {
         currentCall = null
         super.onDestroy()
@@ -279,18 +334,14 @@ class NavigationDialogFragment : DialogFragment() {
                 enabled = true
             }
 
-            // 获取起点和终点坐标
-            val origin = Point.fromLngLat(
-                requireArguments().getDouble("fromLng", 0.0),
-                requireArguments().getDouble("fromLat", 0.0)
-            )
-            val destination = Point.fromLngLat(
-                requireArguments().getDouble("toLng", 0.0),
-                requireArguments().getDouble("toLat", 0.0)
-            )
+            // 获取终点坐标
+        destination = Point.fromLngLat(
+            requireArguments().getDouble("toLng", 0.0),
+            requireArguments().getDouble("toLat", 0.0)
+        )
 
-            // 请求路线
-            findRoute(origin, destination)
+        // 检查位置权限并请求路线
+        checkLocationPermissionAndRequestRoute()
 
             // 初始化导航相机
             viewportDataSource = MapboxNavigationViewportDataSource(binding.mapView.mapboxMap)

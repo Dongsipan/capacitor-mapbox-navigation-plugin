@@ -61,19 +61,13 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
     fun startNavigation(call: PluginCall) {
         val routesArray = call.getArray("routes")
 
-        if (routesArray != null && routesArray.length() == 2) {
-            val fromLocation = routesArray.getJSONObject(0)
-            val toLocation = routesArray.getJSONObject(1)
-
-            val fromLat = fromLocation.getDouble("latitude")
-            val fromLng = fromLocation.getDouble("longitude")
+        if (routesArray != null && routesArray.length() > 0) {
+            val toLocation = routesArray.getJSONObject(0)
             val toLat = toLocation.getDouble("latitude")
             val toLng = toLocation.getDouble("longitude")
 
             val dialogFragment = NavigationDialogFragment()
             val args = Bundle()
-            args.putDouble("fromLat", fromLat)
-            args.putDouble("fromLng", fromLng)
             args.putDouble("toLat", toLat)
             args.putDouble("toLng", toLng)
             dialogFragment.arguments = args
@@ -82,8 +76,6 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
                 activity.runOnUiThread {
                     val dialogFragment = NavigationDialogFragment()
                     val args = Bundle()
-                    args.putDouble("fromLat", fromLat)
-                    args.putDouble("fromLng", fromLng)
                     args.putDouble("toLat", toLat)
                     args.putDouble("toLng", toLng)
                     dialogFragment.arguments = args
