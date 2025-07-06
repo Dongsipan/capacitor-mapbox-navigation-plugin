@@ -1,14 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.capacitor.mapbox.navigation.plugin">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.capacitor.mapbox.navigation.plugin">
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application>
         <activity
-            android:name="com.capacitor.mapbox.navigation.plugin.NavigationActivity"
+            android:name="com.capacitor.mapbox.navigation.plugin.NavigationDialogFragment"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|screenSize"
             android:theme="@style/AppTheme.NoActionBar"
-            android:exported="false">
+            android:exported="false"
+            tools:ignore="Instantiatable">
             <intent-filter>
                 <action android:name="com.capacitor.mapbox.navigation.plugin.NavigationViewActivity"/>
                 <category android:name="android.intent.category.DEFAULT"/>

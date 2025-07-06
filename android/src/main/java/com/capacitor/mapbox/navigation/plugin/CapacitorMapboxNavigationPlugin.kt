@@ -1,13 +1,13 @@
 package com.capacitor.mapbox.navigation.plugin
 
-import android.content.Intent
-import androidx.activity.result.ActivityResult
+import android.os.Bundle
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
 import com.getcapacitor.*
 import com.getcapacitor.annotation.ActivityCallback
 import com.getcapacitor.annotation.CapacitorPlugin
 import com.getcapacitor.annotation.Permission
 import com.getcapacitor.annotation.PermissionCallback
-
 
 @CapacitorPlugin(
     name = "CapacitorMapboxNavigation",
@@ -15,14 +15,16 @@ import com.getcapacitor.annotation.PermissionCallback
         Permission(
             alias = "location",
             strings = arrayOf(
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
             )
-    )]
+        )
+    ]
 )
 class CapacitorMapboxNavigationPlugin : Plugin() {
     private val implementation = CapacitorMapboxNavigation()
     private var currentCall: PluginCall? = null
+
     companion object {
         private var instance: CapacitorMapboxNavigationPlugin? = null
 
@@ -46,9 +48,9 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun show(call: PluginCall){
-        if(getPermissionState("location") != PermissionState.GRANTED){
-            requestPermissionForAlias( "location",call, "permissionCallback")
+    fun show(call: PluginCall) {
+        if (getPermissionState("location") != PermissionState.GRANTED) {
+            requestPermissionForAlias("location", call, "permissionCallback")
         } else {
             call.setKeepAlive(true)
             currentCall = call
@@ -68,52 +70,42 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
             val toLat = toLocation.getDouble("latitude")
             val toLng = toLocation.getDouble("longitude")
 
-            val intent = Intent(this.getBridge().context, NavigationActivity::class.java)
-            intent.putExtra("fromLat", fromLat)
-            intent.putExtra("fromLng", fromLng)
-            intent.putExtra("toLat", toLat)
-            intent.putExtra("toLng", toLng)
-
-            val simulate = call.getBoolean("simulating", true)
-            intent.putExtra("simulate",simulate)
-
-            startActivityForResult(call, intent, "navigationCallback")
+            val dialogFragment = NavigationDialogFragment()
+            val args = Bundle()
+            args.putDouble("fromLat", fromLat)
+            args.putDouble("fromLng", fromLng)
+            args.putDouble("toLat", toLat)
+            args.putDouble("toLng", toLng)
+            dialogFragment.arguments = args
+            val activity = getActivity()
+            if (activity != null) {
+                activity.runOnUiThread {
+                    val dialogFragment = NavigationDialogFragment()
+                    val args = Bundle()
+                    args.putDouble("fromLat", fromLat)
+                    args.putDouble("fromLng", fromLng)
+                    args.putDouble("toLat", toLat)
+                    args.putDouble("toLng", toLng)
+                    dialogFragment.arguments = args
+                    dialogFragment.show(activity.supportFragmentManager, "NavigationDialogFragment")
+                }
+            } else {
+                call.reject("Activity not available")
+            }
         } else {
             call.reject("Invalid routes data")
         }
     }
 
-    @ActivityCallback
-    private fun navigationCallback(call: PluginCall?, result: ActivityResult) {
-        if (call == null) {
-            return
-        }
-
-        // Do something with the result data
-        var resultIntent = result.data
-
-        var resultStatus = resultIntent?.getStringExtra("status")
-        var resultType = resultIntent?.getStringExtra("type")
-        var resultData = resultIntent?.getStringExtra("data")
-
-
-        val data = JSObject()
-
-        data.put("status",resultStatus)
-        data.put("type",resultType)
-        data.put("data",resultData)
-
-        call.resolve(data)
-        currentCall = null
-    }
     @PermissionCallback
     private fun permissionCallback(call: PluginCall) {
         if (getPermissionState("location") == PermissionState.GRANTED) {
-            startNavigation(call);
+            startNavigation(call)
         } else {
-            call.reject("Permission is required to take a picture");
+            call.reject("Permission is required to take a picture")
         }
     }
+
     fun getCurrentCall(): PluginCall? {
         return currentCall
     }

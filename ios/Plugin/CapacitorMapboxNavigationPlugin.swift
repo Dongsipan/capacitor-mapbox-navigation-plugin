@@ -106,7 +106,7 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
                 let navigationOptions = NavigationOptions(navigationService: navigationService)
 
                 let viewController = NavigationViewController(for: response, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
-                viewController.modalPresentationStyle = .fullScreen
+                viewController.modalPresentationStyle = .overFullScreen
                 viewController.waypointStyle = .extrudedBuilding
                 viewController.delegate = strongSelf
 
