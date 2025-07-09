@@ -150,17 +150,13 @@ class NavigationDialogFragment : DialogFragment() {
                 tripProgressApi.getTripProgress(routeProgress)
             )
 
-//            var currentProgressData = JSObject()
-//            currentProgressData.put("distanceRemaining", routeProgress.currentLegProgress?.distanceRemaining)
-//            currentProgressData.put("durationRemaining", routeProgress.currentLegProgress?.durationRemaining)
-//            currentProgressData.put("stepIndex", routeProgress.currentLegProgress?.currentStepProgress?.stepIndex)
-//            currentProgressData.put("step", routeProgress.currentLegProgress?.currentStepProgress?.step)
-//            currentProgressData.put("upcomingStep", routeProgress.currentLegProgress?.upcomingStep)
+           var currentProgressData = JSObject()
+           currentProgressData.put("currentLegProgress", Gson().toJson(routeProgress.currentLegProgress))
             // 发送路线进度数据到Capacitor
             sendDataToCapacitor(
                 status = "success",
                 type = "onRouteProgressChange",
-                content = Gson().toJson(routeProgress)
+                content = currentProgressData
             )
         }
     }
@@ -305,11 +301,13 @@ class NavigationDialogFragment : DialogFragment() {
                 // 权限授予，尝试请求路线
                 checkLocationPermissionAndRequestRoute()
             } else {
+                val data = JSObject()
+                data.put("message", "位置权限被拒绝，无法获取当前位置")
                 // 权限被拒绝，发送错误事件并关闭对话框
                 sendDataToCapacitor(
                     status = "error",
                     type = "locationPermissionDenied",
-                    content = "位置权限被拒绝，无法获取当前位置"
+                    content = data
                 )
                 dismiss()
             }
@@ -470,20 +468,24 @@ class NavigationDialogFragment : DialogFragment() {
                     @RouterOrigin routerOrigin: String
                 ) {
                     Log.e("Mapbox Navigation", "onCanceled")
+                    val data = JSObject()
+                    data.put("message", "Route Navigation cancelled")
                     finishNavigation(
                         status = "failure",
                         type = "on_cancelled",
-                        content = "Route Navigation cancelled"
+                        content = data
                     )
                     dismiss()
                 }
 
                 override fun onFailure(reasons: List<RouterFailure>, routeOptions: RouteOptions) {
                     Log.e("Mapbox Navigation", "onFailure: $reasons")
+                    val data = JSObject()
+                    data.put("message", "Failed to calculate route")
                     finishNavigation(
                         status = "failure",
                         type = "on_failure",
-                        content = "Failed to calculate route"
+                        content = data
                     )
                     dismiss()
                 }
@@ -523,7 +525,7 @@ class NavigationDialogFragment : DialogFragment() {
     }
 
     // 导航完成时调用，结束调用并关闭 Activity
-    private fun finishNavigation(status: String, type: String, content: String) {
+    private fun finishNavigation(status: String, type: String, content: JSObject) {
         sendDataToCapacitor(status, type, content)
 
         // 释放引用并结束 Activity
@@ -533,7 +535,7 @@ class NavigationDialogFragment : DialogFragment() {
     /**
      * 发送数据到Capacitor插件
      */
-    private fun sendDataToCapacitor(status: String, type: String, content: String) {
+    private fun sendDataToCapacitor(status: String, type: String, content: JSObject) {
         val plugin = CapacitorMapboxNavigationPlugin.getInstance()
         val result = JSObject()
         result.put("status", status)
