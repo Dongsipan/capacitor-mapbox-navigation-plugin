@@ -356,17 +356,36 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
     // 添加 RouteProgress 更新的代理方法
     public func navigationViewController(_ navigationViewController: NavigationViewController, didUpdate progress: RouteProgress, with location: CLLocation, rawLocation: CLLocation) {
         do {
-            let jsonEncoder = JSONEncoder()
-            let progressData = try jsonEncoder.encode(progress.currentLegProgress)
-            if let progressJson = String(data: progressData, encoding: String.Encoding.utf8) {
-                let data = ["status": "success", "content": progressJson]
-                DispatchQueue.main.async {
-                    guard self.hasListeners("onRouteProgressChange") else { return }
-                    self.notifyListeners("onRouteProgressChange", data: data)
+            let currentStep = progress.currentLegProgress.currentStepProgress.step
+            let instructionsDisplayedAlongStep = currentStep.instructionsDisplayedAlongStep
+            let distanceRemaining = progress.currentLegProgress.leg.distance
+            
+            // 创建包含所有必要信息的字典
+            var progressInfo: [String: Any] = [:]
+            
+            // 添加距离信息
+            progressInfo["distanceRemaining"] = distanceRemaining
+            
+            // 添加指令信息（如果存在）
+            if let instructions = instructionsDisplayedAlongStep {
+                let jsonEncoder = JSONEncoder()
+                let instructionsData = try jsonEncoder.encode(instructions[0])
+                if let instructionsJson = String(data: instructionsData, encoding: .utf8) {
+                    progressInfo["bannerInstructions"] = instructionsJson
                 }
+            } else {
+                progressInfo["bannerInstructions"] = ""
+            }
+            
+            // 直接使用 progressInfo 作为 content，不需要转换为字符串
+            let data: [String: Any] = ["status": "success", "type": "onRouteProgressChange", "content": progressInfo]
+            DispatchQueue.main.async {
+                guard self.hasListeners("onRouteProgressChange") else { return }
+                self.notifyListeners("onRouteProgressChange", data: data)
             }
         } catch {
-            let data = ["status": "failure", "content": "Error encoding route progress data: \(error.localizedDescription)"]
+            let errorContent: [String: String] = ["error": "Error encoding route progress data", "message": error.localizedDescription]
+            let data: [String: Any] = ["status": "failure", "type": "onRouteProgressChange", "content": errorContent]
             DispatchQueue.main.async {
                 guard self.hasListeners("onRouteProgressChange") else { return }
                 self.notifyListeners("onRouteProgressChange", data: data)

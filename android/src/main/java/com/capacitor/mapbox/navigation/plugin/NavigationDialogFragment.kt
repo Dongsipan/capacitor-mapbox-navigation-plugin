@@ -547,7 +547,7 @@ class NavigationDialogFragment : DialogFragment() {
         val result = JSObject()
         result.put("status", status)
         result.put("type", type)
-        result.put("data", content)
+        result.put("content", content)
 
         if (type == "onRouteProgressChange") {
             // 导航进度更新使用事件通知
