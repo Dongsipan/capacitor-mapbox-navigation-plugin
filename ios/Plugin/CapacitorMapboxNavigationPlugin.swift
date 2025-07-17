@@ -358,7 +358,7 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
         do {
             let currentStep = progress.currentLegProgress.currentStepProgress.step
             let instructionsDisplayedAlongStep = currentStep.instructionsDisplayedAlongStep
-            let distanceRemaining = progress.currentLegProgress.leg.distance
+            let distanceRemaining = progress.distanceRemaining
             
             // 创建包含所有必要信息的字典
             var progressInfo: [String: Any] = [:]
