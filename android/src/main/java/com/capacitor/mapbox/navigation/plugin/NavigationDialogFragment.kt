@@ -156,6 +156,10 @@ class NavigationDialogFragment : DialogFragment() {
                 routeProgress.bannerInstructions?.toJson()
             )
             currentProgressData.put("distanceRemaining", routeProgress.distanceRemaining)
+            currentProgressData.put(
+                "stepDistanceRemaining",
+                routeProgress.currentLegProgress?.currentStepProgress?.distanceRemaining
+            )
             // 发送路线进度数据到Capacitor
             sendDataToCapacitor(
                 status = "success",
@@ -279,7 +283,7 @@ class NavigationDialogFragment : DialogFragment() {
     private fun checkLocationPermissionAndRequestRoute() {
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
             == PackageManager.PERMISSION_GRANTED
         ) {
@@ -290,7 +294,7 @@ class NavigationDialogFragment : DialogFragment() {
         } else {
             // 请求位置权限
             requestPermissions(
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         }

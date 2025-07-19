@@ -359,13 +359,13 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             let currentStep = progress.currentLegProgress.currentStepProgress.step
             let instructionsDisplayedAlongStep = currentStep.instructionsDisplayedAlongStep
             let distanceRemaining = progress.distanceRemaining
-            
+            let stepDistanceRemaining = progress.currentLegProgress.currentStepProgress.distanceRemaining
             // 创建包含所有必要信息的字典
             var progressInfo: [String: Any] = [:]
             
             // 添加距离信息
             progressInfo["distanceRemaining"] = distanceRemaining
-            
+            progressInfo["stepDistanceRemaining"] = stepDistanceRemaining
             // 添加指令信息（如果存在）
             if let instructions = instructionsDisplayedAlongStep {
                 let jsonEncoder = JSONEncoder()
