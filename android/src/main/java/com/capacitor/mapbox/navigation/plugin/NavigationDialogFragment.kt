@@ -4,6 +4,8 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -20,6 +22,7 @@ import com.getcapacitor.PluginCall
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.RouteOptions
 import com.mapbox.geojson.Point
+import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.navigation.base.TimeFormat
@@ -76,10 +79,48 @@ class NavigationDialogFragment : DialogFragment() {
         }
     }
 
-    private val BUTTON_ANIMATION_DURATION = 300L
+    private val BUTTON_ANIMATION_DURATION = 1500L
     private lateinit var binding: MapboxActivityNavigationViewBinding
     private lateinit var navigationCamera: NavigationCamera
     private lateinit var viewportDataSource: MapboxNavigationViewportDataSource
+
+    /*
+     * Below are generated camera padding values to ensure that the route fits well on screen while
+     * other elements are overlaid on top of the map (including instruction view, buttons, etc.)
+     */
+    private val pixelDensity = Resources.getSystem().displayMetrics.density
+    private val overviewPadding: EdgeInsets by lazy {
+        EdgeInsets(
+            140.0 * pixelDensity,
+            40.0 * pixelDensity,
+            120.0 * pixelDensity,
+            40.0 * pixelDensity
+        )
+    }
+    private val landscapeOverviewPadding: EdgeInsets by lazy {
+        EdgeInsets(
+            30.0 * pixelDensity,
+            380.0 * pixelDensity,
+            110.0 * pixelDensity,
+            20.0 * pixelDensity
+        )
+    }
+    private val followingPadding: EdgeInsets by lazy {
+        EdgeInsets(
+            180.0 * pixelDensity,
+            40.0 * pixelDensity,
+            150.0 * pixelDensity,
+            40.0 * pixelDensity
+        )
+    }
+    private val landscapeFollowingPadding: EdgeInsets by lazy {
+        EdgeInsets(
+            30.0 * pixelDensity,
+            380.0 * pixelDensity,
+            110.0 * pixelDensity,
+            40.0 * pixelDensity
+        )
+    }
     private lateinit var maneuverApi: MapboxManeuverApi
     private lateinit var tripProgressApi: MapboxTripProgressApi
     private lateinit var routeLineApi: MapboxRouteLineApi
@@ -375,6 +416,18 @@ class NavigationDialogFragment : DialogFragment() {
                     NavigationCameraState.OVERVIEW,
                     NavigationCameraState.IDLE -> binding.recenter.visibility = View.VISIBLE
                 }
+            }
+
+            // set the padding values depending on screen orientation and visible view layout
+            if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                viewportDataSource.overviewPadding = landscapeOverviewPadding
+            } else {
+                viewportDataSource.overviewPadding = overviewPadding
+            }
+            if (this.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                viewportDataSource.followingPadding = landscapeFollowingPadding
+            } else {
+                viewportDataSource.followingPadding = followingPadding
             }
 
             // 初始化距离格式化器
