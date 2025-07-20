@@ -25,6 +25,19 @@ func getNowString() -> String {
     return formatter.string(from: date)
 }
 
+// 智能距离格式化器，使用 Mapbox 官方的 RoundingTable 规则
+class SmartDistanceFormatter {
+    static func formatDistance(_ distance: CLLocationDistance) -> Double {
+        // 使用 Mapbox 官方的 metric RoundingTable 规则
+        let roundingTable = RoundingTable.metric
+        let threshold = roundingTable.threshold(for: distance)
+        let measurement = threshold.measurement(of: distance)
+        
+        // 返回以米为单位的数字
+        return measurement.distance
+    }
+}
+
 @objc(CapacitorMapboxNavigationPlugin)
 public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControllerDelegate, CLLocationManagerDelegate {
 
@@ -103,12 +116,16 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
                     }
 
                     let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: routeOptions, simulating: isSimulate ? .always : .never)
+                    
                     let navigationOptions = NavigationOptions(navigationService: navigationService)
 
                     let viewController = NavigationViewController(for: response, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
                     viewController.modalPresentationStyle = .overFullScreen
                     viewController.waypointStyle = .extrudedBuilding
                     viewController.delegate = strongSelf
+                    
+                    // 使用默认的智能距离格式化器
+                    // iOS 端会自动使用智能单位显示距离
 
                     self?.keepAwake()
 
@@ -360,12 +377,15 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             let instructionsDisplayedAlongStep = currentStep.instructionsDisplayedAlongStep
             let distanceRemaining = progress.distanceRemaining
             let stepDistanceRemaining = progress.currentLegProgress.currentStepProgress.distanceRemaining
+            
             // 创建包含所有必要信息的字典
             var progressInfo: [String: Any] = [:]
             
             // 添加距离信息
             progressInfo["distanceRemaining"] = distanceRemaining
-            progressInfo["stepDistanceRemaining"] = stepDistanceRemaining
+            // 对 stepDistanceRemaining 应用智能距离格式化
+            progressInfo["stepDistanceRemaining"] = SmartDistanceFormatter.formatDistance(stepDistanceRemaining)
+            
             // 添加指令信息（如果存在）
             if let instructions = instructionsDisplayedAlongStep {
                 let jsonEncoder = JSONEncoder()

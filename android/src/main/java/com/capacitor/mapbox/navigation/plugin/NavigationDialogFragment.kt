@@ -29,6 +29,7 @@ import com.mapbox.navigation.base.TimeFormat
 import com.mapbox.navigation.base.extensions.applyDefaultNavigationOptions
 import com.mapbox.navigation.base.extensions.applyLanguageAndVoiceUnitOptions
 import com.mapbox.navigation.base.formatter.DistanceFormatterOptions
+import com.mapbox.navigation.base.formatter.Rounding
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.base.route.NavigationRoute
 import com.mapbox.navigation.base.route.NavigationRouterCallback
@@ -432,8 +433,7 @@ class NavigationDialogFragment : DialogFragment() {
 
             // 初始化距离格式化器
             val distanceFormatterOptions =
-                DistanceFormatterOptions.Builder(requireContext()).build()
-
+                DistanceFormatterOptions.Builder(requireContext()).roundingIncrement(Rounding.INCREMENT_FIVE).build()
             // 初始化操作 API
             maneuverApi = MapboxManeuverApi(
                 MapboxDistanceFormatter(distanceFormatterOptions)
