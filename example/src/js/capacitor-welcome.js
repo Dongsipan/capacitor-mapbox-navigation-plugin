@@ -3,6 +3,12 @@ import { CapacitorMapboxNavigation } from '@dongsp/capacitor-mapbox-navigation'
 
 const navigateBtn = document.getElementById('navigate-btn')
 
+// 添加 onNavigationStop 事件监听器
+CapacitorMapboxNavigation.addListener('onNavigationStop', (data) => {
+  console.log('Navigation stopped:', data)
+  alert('Navigation stopped: ' + JSON.stringify(data))
+})
+
 navigateBtn.addEventListener('click', async () => {
   const long = +document.getElementById('longitude').value
   const lat = +document.getElementById('latitude').value
@@ -28,7 +34,18 @@ const startNavigation = async ({ latitude, longitude }) => {
   //   enableHighAccuracy: true,
   // })
 
-  const location = {"timestamp":1750063181699,"coords":{"accuracy":40,"latitude":31.297905645089603,"longitude":120.54365934218187,"altitude":0,"altitudeAccuracy":null,"heading":null,"speed":null}}
+  const location = {
+    timestamp: 1750063181699,
+    coords: {
+      accuracy: 40,
+      latitude: 31.297905645089603,
+      longitude: 120.54365934218187,
+      altitude: 0,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null,
+    },
+  }
 
   console.log(location)
 
@@ -46,10 +63,10 @@ const startNavigation = async ({ latitude, longitude }) => {
   if (result?.status === 'failure') {
     switch (result?.type) {
       case 'on_failure':
-        toastError('No routes found', true)
+        alert('No routes found')
         break
       case 'on_cancelled':
-        toastError('Navigation cancelled', true)
+        alert('Navigation cancelled')
         break
     }
   }
@@ -57,7 +74,7 @@ const startNavigation = async ({ latitude, longitude }) => {
 
 function isAddressValid({ latitude = 0, longitude = 0 }) {
   if (latitude === 0 || longitude === 0) {
-    toastError('Activity Address is not available', true)
+    alert('Activity Address is not available')
     return false
   }
 
@@ -66,10 +83,7 @@ function isAddressValid({ latitude = 0, longitude = 0 }) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleDeniedLocation = (error) => {
   if (error?.type === 'not_supported') {
-    return toastError('Navigation not supported on web', true)
+    return alert('Navigation not supported on web')
   }
-  toastError(
-    'Error in getting location permission, please enable your gps location',
-    true,
-  )
+  alert('Error in getting location permission, please enable your gps location')
 }

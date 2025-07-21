@@ -1,13 +1,16 @@
-### Notice: 
+### Notice:
+
 This is a fork from the original plugin [capacitor-mapbox-navigation](https://github.com/visio-soft/capacitor-mapbox) to fix some issues and add some features. The original plugin was not maintained and had some issues.
 feel free to use this plugin and contribute to it.
 
 # capacitor-mapbox-navigation
 
 Capacitor plugin to implement Turn-by-Turn Mapbox navigation.
+
 ## RoadMap
 
-* Bridge event binding.
+- Bridge event binding.
+- ✅ onNavigationStop callback implementation
 
 ## Installation Requirements
 
@@ -21,7 +24,7 @@ Before installing the SDK, you will need to gather the appropriate credentials. 
 1. Click the **Create token** button at the bottom of the page to create your token.
 1. The token you've created is a _secret token_, which means you will only have one opportunity to copy it somewhere secure.
 
-## Install 
+## Install
 
 ```bash
 npm install capacitor-mapbox-navigation
@@ -29,12 +32,12 @@ npx cap sync
 ```
 
 ## IOS instructions
+
 **Configure your secret token.**
 
 Your secret token enables you to download the SDK directly from Mapbox. To use your secret token, you will need to store it in a .netrc file in your home directory (not your project folder). This approach helps avoid accidentally exposing your secret token by keeping it out of your application's source code. Depending on your environment, you may have this file already, so check first before creating a new one.
 
 The **.netrc** file is a plain text file that is used in certain development environments to store credentials used to access remote servers. The login should always be mapbox. It should not be your personal username used to create the secret token. To set up the credentials required to download the SDK, add the following entry to your .netrc file:
-
 
 ```bash
 machine api.mapbox.com
@@ -43,10 +46,6 @@ password YOUR_SECRET_MAPBOX_ACCESS_TOKEN
 ```
 
 To configure your public access token, open your project's **Info.plist** file and add a **MBXAccessToken** key whose value is your public access token.
-
-
-
-
 
 #### Permission
 
@@ -98,8 +97,53 @@ Place your public token in values/mapbox_access_token.xml `android/app/src/main/
 
 For more information you can read the [docs provided by Mapbox](https://docs.mapbox.com/android/navigation/overview/#configure-credentials).
 
+## Usage
+
+### Basic Navigation
+
+```typescript
+import { CapacitorMapboxNavigation } from '@dongsp/capacitor-mapbox-navigation';
+
+// Start navigation
+const result = await CapacitorMapboxNavigation.show({
+  routes: [
+    { latitude: 31.297905645089603, longitude: 120.54365934218187 }, // Start point
+    { latitude: 31.1262937, longitude: 120.4477933 }, // Destination
+  ],
+  simulating: true,
+});
+
+console.log('Navigation result:', result);
+```
+
+### Listening to Navigation Events
+
+```typescript
+import { CapacitorMapboxNavigation } from '@dongsp/capacitor-mapbox-navigation';
+
+// Listen for navigation stop events
+CapacitorMapboxNavigation.addListener('onNavigationStop', (data) => {
+  console.log('Navigation stopped:', data);
+  // Handle navigation stop - e.g., show summary, save trip data, etc.
+});
+
+// Listen for route progress updates
+CapacitorMapboxNavigation.addListener('onRouteProgressChange', (data) => {
+  console.log('Route progress:', data);
+  // Update UI with current navigation progress
+});
+
+// Listen for screen mirroring changes
+CapacitorMapboxNavigation.addListener('onScreenMirroringChange', (data) => {
+  console.log('Screen mirroring:', data.enabled);
+  // Handle screen mirroring state changes
+});
+```
+
 #### Permission
+
 If you plan to display the user's location on the map or get the user's location information you will need to add the ACCESS_COARSE_LOCATION permission in your application's AndroidManifest.xml. You also need to add ACCESS_FINE_LOCATION permissions if you need access to precise location.
+
 ```xml
 <manifest ... >
   <!-- Always include this permission -->
@@ -110,6 +154,7 @@ If you plan to display the user's location on the map or get the user's location
 </manifest>
 
 ```
+
 ## API
 
 <docgen-index>
@@ -121,6 +166,7 @@ If you plan to display the user's location on the map or get the user's location
 * [`checkPermissions()`](#checkpermissions)
 * [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
 * [`addListener('onScreenMirroringChange', ...)`](#addlisteneronscreenmirroringchange-)
+* [`addListener('onNavigationStop', ...)`](#addlisteneronnavigationstop-)
 * [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
 * [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
 * [`removeAllListeners()`](#removealllisteners)
@@ -227,6 +273,22 @@ addListener(eventName: 'onScreenMirroringChange', listenerFunc: (data: ScreenMir
 --------------------
 
 
+### addListener('onNavigationStop', ...)
+
+```typescript
+addListener(eventName: 'onNavigationStop', listenerFunc: (data: OnNavigationStopEvent) => any) => Promise<PluginListenerHandle>
+```
+
+| Param              | Type                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'onNavigationStop'</code>                                                           |
+| **`listenerFunc`** | <code>(data: <a href="#onnavigationstopevent">OnNavigationStopEvent</a>) =&gt; any</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
 ### addListener('plusButtonClicked', ...)
 
 ```typescript
@@ -273,11 +335,11 @@ removeAllListeners() => Promise<void>
 
 #### MapboxResult
 
-| Prop         | Type                                                                                            |
-| ------------ | ----------------------------------------------------------------------------------------------- |
-| **`status`** | <code>'success' \| 'failure'</code>                                                             |
-| **`type`**   | <code>'on_failure' \| 'on_cancelled' \| 'on_stop' \| 'on_progress_update' \| 'on_arrive'</code> |
-| **`data`**   | <code>string</code>                                                                             |
+| Prop         | Type                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| **`status`** | <code>'success' \| 'failure'</code>                                                                      |
+| **`type`**   | <code>'onNavigationStop' \| 'on_failure' \| 'on_cancelled' \| 'on_progress_update' \| 'on_arrive'</code> |
+| **`data`**   | <code>string</code>                                                                                      |
 
 
 #### MapboxNavOptions
@@ -315,6 +377,15 @@ removeAllListeners() => Promise<void>
 | Prop          | Type                 |
 | ------------- | -------------------- |
 | **`enabled`** | <code>boolean</code> |
+
+
+#### OnNavigationStopEvent
+
+| Prop          | Type                                                 |
+| ------------- | ---------------------------------------------------- |
+| **`status`**  | <code>'success' \| 'failure'</code>                  |
+| **`type`**    | <code>'onNavigationStop'</code>                      |
+| **`content`** | <code>{ message: string; timestamp: number; }</code> |
 
 
 ### Type Aliases

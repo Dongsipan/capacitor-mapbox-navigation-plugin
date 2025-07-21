@@ -243,6 +243,7 @@ class NavigationDialogFragment : DialogFragment() {
 
     private var currentLocation: Point? = null
     private var destination: Point? = null
+    private var onNavigationStopCallbackSent = false
 
     // 独立的 MapboxNavigationObserver 实例
     private val navigationObserver = object : MapboxNavigationObserver {
@@ -308,6 +309,8 @@ class NavigationDialogFragment : DialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // 发送 onNavigationStop 回调
+        sendOnNavigationStopCallback()
         // 解绑 MapboxNavigation 与 fragment 生命周期
         MapboxNavigationApp.detach(this)
         // 注销观察者
@@ -368,6 +371,8 @@ class NavigationDialogFragment : DialogFragment() {
     }
 
     override fun onDestroy() {
+        // 发送 onNavigationStop 回调（如果还没有发送过）
+        sendOnNavigationStopCallback()
         currentCall = null
         super.onDestroy()
         if (::maneuverApi.isInitialized) maneuverApi.cancel()
@@ -613,5 +618,28 @@ class NavigationDialogFragment : DialogFragment() {
             // 其他类型使用Promise回调
             currentCall?.resolve(result)
         }
+    }
+
+    /**
+     * 发送 onNavigationStop 回调
+     */
+    private fun sendOnNavigationStopCallback() {
+        // 避免重复发送
+        if (onNavigationStopCallbackSent) {
+            return
+        }
+        
+        val plugin = CapacitorMapboxNavigationPlugin.getInstance()
+        val result = JSObject()
+        result.put("status", "success")
+        result.put("type", "onNavigationStop")
+        
+        val content = JSObject()
+        content.put("message", "Navigation stopped")
+        content.put("timestamp", System.currentTimeMillis())
+        result.put("content", content)
+        
+        plugin?.triggerOnNavigationStopEvent(result)
+        onNavigationStopCallbackSent = true
     }
 }

@@ -129,4 +129,10 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
             notifyListeners("minusButtonClicked", data)
         }
     }
+
+    fun triggerOnNavigationStopEvent(data: JSObject) {
+        if (hasListeners("onNavigationStop")) {
+            notifyListeners("onNavigationStop", data)
+        }
+    }
 }
