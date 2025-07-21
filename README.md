@@ -1,13 +1,15 @@
-### Notice: 
+### Notice:
+
 This is a fork from the original plugin [capacitor-mapbox-navigation](https://github.com/visio-soft/capacitor-mapbox) to fix some issues and add some features. The original plugin was not maintained and had some issues.
 feel free to use this plugin and contribute to it.
 
 # capacitor-mapbox-navigation
 
 Capacitor plugin to implement Turn-by-Turn Mapbox navigation.
+
 ## RoadMap
 
-* Bridge event binding.
+- Bridge event binding.
 
 ## Installation Requirements
 
@@ -21,7 +23,7 @@ Before installing the SDK, you will need to gather the appropriate credentials. 
 1. Click the **Create token** button at the bottom of the page to create your token.
 1. The token you've created is a _secret token_, which means you will only have one opportunity to copy it somewhere secure.
 
-## Install 
+## Install
 
 ```bash
 npm install capacitor-mapbox-navigation
@@ -29,12 +31,12 @@ npx cap sync
 ```
 
 ## IOS instructions
+
 **Configure your secret token.**
 
 Your secret token enables you to download the SDK directly from Mapbox. To use your secret token, you will need to store it in a .netrc file in your home directory (not your project folder). This approach helps avoid accidentally exposing your secret token by keeping it out of your application's source code. Depending on your environment, you may have this file already, so check first before creating a new one.
 
 The **.netrc** file is a plain text file that is used in certain development environments to store credentials used to access remote servers. The login should always be mapbox. It should not be your personal username used to create the secret token. To set up the credentials required to download the SDK, add the following entry to your .netrc file:
-
 
 ```bash
 machine api.mapbox.com
@@ -43,10 +45,6 @@ password YOUR_SECRET_MAPBOX_ACCESS_TOKEN
 ```
 
 To configure your public access token, open your project's **Info.plist** file and add a **MBXAccessToken** key whose value is your public access token.
-
-
-
-
 
 #### Permission
 
@@ -99,7 +97,9 @@ Place your public token in values/mapbox_access_token.xml `android/app/src/main/
 For more information you can read the [docs provided by Mapbox](https://docs.mapbox.com/android/navigation/overview/#configure-credentials).
 
 #### Permission
+
 If you plan to display the user's location on the map or get the user's location information you will need to add the ACCESS_COARSE_LOCATION permission in your application's AndroidManifest.xml. You also need to add ACCESS_FINE_LOCATION permissions if you need access to precise location.
+
 ```xml
 <manifest ... >
   <!-- Always include this permission -->
@@ -110,22 +110,49 @@ If you plan to display the user's location on the map or get the user's location
 </manifest>
 
 ```
+
+## Features
+
+### Screen Mirroring Control
+
+The plugin includes a screen mirroring control button that allows users to enable/disable screen mirroring functionality. When the button is clicked, it shows a confirmation dialog. Only after confirmation will it trigger an event that can be listened to in your web application. The initial navigation also shows a confirmation dialog for screen mirroring.
+
+#### Usage Example
+
+```typescript
+import { CapacitorMapboxNavigation } from 'capacitor-mapbox-navigation';
+
+// Listen for screen mirroring changes
+CapacitorMapboxNavigation.addListener('onScreenMirroringChange', (data) => {
+  console.log('Mirror status changed:', data.enabled);
+  console.log('Timestamp:', data.timestamp);
+
+  if (data.enabled) {
+    // Handle mirror enabled
+    console.log('Screen mirroring is now enabled');
+  } else {
+    // Handle mirror disabled
+    console.log('Screen mirroring is now disabled');
+  }
+});
+```
+
 ## API
 
 <docgen-index>
 
-* [`echo(...)`](#echo)
-* [`show(...)`](#show)
-* [`history()`](#history)
-* [`requestPermissions()`](#requestpermissions)
-* [`checkPermissions()`](#checkpermissions)
-* [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
-* [`addListener('onScreenMirroringChange', ...)`](#addlisteneronscreenmirroringchange-)
-* [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
-* [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
-* [`removeAllListeners()`](#removealllisteners)
-* [Interfaces](#interfaces)
-* [Type Aliases](#type-aliases)
+- [`echo(...)`](#echo)
+- [`show(...)`](#show)
+- [`history()`](#history)
+- [`requestPermissions()`](#requestpermissions)
+- [`checkPermissions()`](#checkpermissions)
+- [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
+- [`addListener('onScreenMirroringChange', ...)`](#addlisteneronscreenmirroringchange-)
+- [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
+- [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
+- [`removeAllListeners()`](#removealllisteners)
+- [Interfaces](#interfaces)
+- [Type Aliases](#type-aliases)
 
 </docgen-index>
 
@@ -144,8 +171,7 @@ echo(options: { value: string; }) => Promise<{ value: string; }>
 
 **Returns:** <code>Promise&lt;{ value: string; }&gt;</code>
 
---------------------
-
+---
 
 ### show(...)
 
@@ -159,8 +185,7 @@ show(options: MapboxNavOptions) => Promise<MapboxResult>
 
 **Returns:** <code>Promise&lt;<a href="#mapboxresult">MapboxResult</a>&gt;</code>
 
---------------------
-
+---
 
 ### history()
 
@@ -170,8 +195,7 @@ history() => Promise<any>
 
 **Returns:** <code>Promise&lt;any&gt;</code>
 
---------------------
-
+---
 
 ### requestPermissions()
 
@@ -181,8 +205,7 @@ requestPermissions() => Promise<PermissionStatus>
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
---------------------
-
+---
 
 ### checkPermissions()
 
@@ -192,8 +215,7 @@ checkPermissions() => Promise<PermissionStatus>
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
---------------------
-
+---
 
 ### addListener('onRouteProgressChange', ...)
 
@@ -208,8 +230,7 @@ addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
---------------------
-
+---
 
 ### addListener('onScreenMirroringChange', ...)
 
@@ -224,8 +245,7 @@ addListener(eventName: 'onScreenMirroringChange', listenerFunc: (data: ScreenMir
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
---------------------
-
+---
 
 ### addListener('plusButtonClicked', ...)
 
@@ -240,8 +260,7 @@ addListener(eventName: 'plusButtonClicked', listenerFunc: (data: Record<string, 
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
---------------------
-
+---
 
 ### addListener('minusButtonClicked', ...)
 
@@ -256,8 +275,7 @@ addListener(eventName: 'minusButtonClicked', listenerFunc: (data: Record<string,
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
---------------------
-
+---
 
 ### removeAllListeners()
 
@@ -265,11 +283,9 @@ addListener(eventName: 'minusButtonClicked', listenerFunc: (data: Record<string,
 removeAllListeners() => Promise<void>
 ```
 
---------------------
-
+---
 
 ### Interfaces
-
 
 #### MapboxResult
 
@@ -279,14 +295,12 @@ removeAllListeners() => Promise<void>
 | **`type`**   | <code>'on_failure' \| 'on_cancelled' \| 'on_stop' \| 'on_progress_update' \| 'on_arrive'</code> |
 | **`data`**   | <code>string</code>                                                                             |
 
-
 #### MapboxNavOptions
 
 | Prop             | Type                          |
 | ---------------- | ----------------------------- |
 | **`routes`**     | <code>LocationOption[]</code> |
 | **`simulating`** | <code>boolean</code>          |
-
 
 #### LocationOption
 
@@ -295,13 +309,11 @@ removeAllListeners() => Promise<void>
 | **`latitude`**  | <code>number</code> |
 | **`longitude`** | <code>number</code> |
 
-
 #### PermissionStatus
 
 | Prop           | Type                                                        |
 | -------------- | ----------------------------------------------------------- |
 | **`location`** | <code><a href="#permissionstate">PermissionState</a></code> |
-
 
 #### PluginListenerHandle
 
@@ -309,26 +321,24 @@ removeAllListeners() => Promise<void>
 | ------------ | ----------------------------------------- |
 | **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
 
-
 #### ScreenMirroringChangeEvent
 
 | Prop          | Type                 |
 | ------------- | -------------------- |
 | **`enabled`** | <code>boolean</code> |
 
-
 ### Type Aliases
-
 
 #### PermissionState
 
 <code>'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'</code>
 
-
 #### Record
 
 Construct a type with a set of properties K of type T
 
-<code>{ [P in K]: T; }</code>
+<code>{
+ [P in K]: T;
+ }</code>
 
 </docgen-api>

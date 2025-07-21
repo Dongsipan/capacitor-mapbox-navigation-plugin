@@ -28,7 +28,18 @@ const startNavigation = async ({ latitude, longitude }) => {
   //   enableHighAccuracy: true,
   // })
 
-  const location = {"timestamp":1750063181699,"coords":{"accuracy":40,"latitude":31.297905645089603,"longitude":120.54365934218187,"altitude":0,"altitudeAccuracy":null,"heading":null,"speed":null}}
+  const location = {
+    timestamp: 1750063181699,
+    coords: {
+      accuracy: 40,
+      latitude: 31.297905645089603,
+      longitude: 120.54365934218187,
+      altitude: 0,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null,
+    },
+  }
 
   console.log(location)
 
@@ -73,3 +84,33 @@ const handleDeniedLocation = (error) => {
     true,
   )
 }
+
+// 添加镜像功能监听器示例
+document.addEventListener('DOMContentLoaded', function () {
+  // 监听镜像状态变化
+  CapacitorMapboxNavigation.addListener('onScreenMirroringChange', (data) => {
+    console.log('镜像状态变化:', data)
+
+    // 更新UI显示镜像状态
+    const mirrorStatus = document.getElementById('mirror-status')
+    if (mirrorStatus) {
+      mirrorStatus.textContent = data.enabled ? '镜像已开启' : '镜像已关闭'
+      mirrorStatus.style.color = data.enabled ? 'green' : 'red'
+    }
+
+    // 可以在这里添加其他镜像相关的处理逻辑
+    if (data.enabled) {
+      // 镜像开启时的处理
+      console.log('镜像功能已开启，时间戳:', data.timestamp)
+    } else {
+      // 镜像关闭时的处理
+      console.log('镜像功能已关闭，时间戳:', data.timestamp)
+    }
+  })
+
+  // 监听路线进度变化
+  CapacitorMapboxNavigation.addListener('onRouteProgressChange', (data) => {
+    console.log('路线进度更新:', data)
+    // 处理路线进度数据
+  })
+})

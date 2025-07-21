@@ -91,6 +91,20 @@
             android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/routeOverview" />
+        
+        <!-- Mirror Control Button -->
+        <ImageButton
+            android:id="@+id/mirrorButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/mirror_button_background"
+            android:src="@drawable/ic_mirror"
+            android:visibility="invisible"
+            android:contentDescription="镜像控制"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/recenter" />
     
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

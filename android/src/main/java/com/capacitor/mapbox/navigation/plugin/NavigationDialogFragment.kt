@@ -129,6 +129,7 @@ class NavigationDialogFragment : DialogFragment() {
     private val routeArrowApi: MapboxRouteArrowApi = MapboxRouteArrowApi()
     private lateinit var routeArrowView: MapboxRouteArrowView
     private var isVoiceInstructionsMuted = false
+    private var isMirrorEnabled = false
     private lateinit var speechApi: MapboxSpeechApi
     private lateinit var voiceInstructionsPlayer: MapboxVoiceInstructionsPlayer
     private val navigationLocationProvider = NavigationLocationProvider()
@@ -293,15 +294,11 @@ class NavigationDialogFragment : DialogFragment() {
     ) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 将 fragment 的生命周期与 MapboxNavigation 绑定
+        MapboxNavigationApp.attach(this)
 
         // 检查位置权限
         checkLocationPermissionAndRequestRoute()
-
-        // 注册 MapboxNavigation 观察者
-        MapboxNavigationApp.registerObserver(navigationObserver)
-
-        // 将 fragment 的生命周期与 MapboxNavigation 绑定
-        MapboxNavigationApp.attach(this)
 
         initNavigation()
     }
@@ -514,6 +511,35 @@ class NavigationDialogFragment : DialogFragment() {
             }
 
             binding.soundButton.unmute()
+            
+            // 设置镜像按钮点击事件
+            binding.mirrorButton.setOnClickListener {
+                // 显示投屏确认弹框
+                AlertDialog.Builder(requireContext())
+                    .setTitle("投屏确认")
+                    .setMessage(if (isMirrorEnabled) "是否关闭投屏？" else "是否开启投屏？")
+                    .setPositiveButton(if (isMirrorEnabled) "关闭" else "开启") { _, _ ->
+                        isMirrorEnabled = !isMirrorEnabled
+                        val data = JSObject()
+                        data.put("enabled", isMirrorEnabled)
+                        data.put("timestamp", System.currentTimeMillis())
+                        CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+                        
+                        // 更新按钮状态
+                        if (isMirrorEnabled) {
+                            binding.mirrorButton.setColorFilter(Color.GREEN)
+                        } else {
+                            binding.mirrorButton.setColorFilter(Color.GRAY)
+                        }
+                    }
+                    .setNegativeButton("取消") { _, _ ->
+                        // 用户取消，不做任何操作
+                    }
+                    .show()
+            }
+            
+            // 注册 MapboxNavigation 观察者（在所有初始化完成后）
+            MapboxNavigationApp.registerObserver(navigationObserver)
         }
     }
 
@@ -569,20 +595,29 @@ class NavigationDialogFragment : DialogFragment() {
         binding.soundButton.visibility = View.VISIBLE
         binding.routeOverview.visibility = View.VISIBLE
         binding.tripProgressCard.visibility = View.VISIBLE
+        binding.mirrorButton.visibility = View.VISIBLE
         isVoiceInstructionsMuted = !isVoiceInstructionsMuted
         // Show screen mirroring confirmation dialog
         AlertDialog.Builder(requireContext())
             .setTitle("投屏确认")
             .setMessage("是否开启投屏？")
             .setPositiveButton("开启") { _, _ ->
+                isMirrorEnabled = true
                 val data = JSObject()
                 data.put("enabled", true)
+                data.put("timestamp", System.currentTimeMillis())
                 CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+                // 更新按钮状态
+                binding.mirrorButton.setColorFilter(Color.GREEN)
             }
             .setNegativeButton("取消") { _, _ ->
+                isMirrorEnabled = false
                 val data = JSObject()
                 data.put("enabled", false)
+                data.put("timestamp", System.currentTimeMillis())
                 CapacitorMapboxNavigationPlugin.getInstance()?.triggerScreenMirroringEvent(data)
+                // 更新按钮状态
+                binding.mirrorButton.setColorFilter(Color.GRAY)
             }
             .show()
         navigationCamera.requestNavigationCameraToFollowing()
