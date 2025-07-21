@@ -189,19 +189,20 @@ CapacitorMapboxNavigation.addListener('onScreenMirroringChange', (data) => {
 
 <docgen-index>
 
-- [`echo(...)`](#echo)
-- [`show(...)`](#show)
-- [`history()`](#history)
-- [`requestPermissions()`](#requestpermissions)
-- [`checkPermissions()`](#checkpermissions)
-- [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
-- [`addListener('onScreenMirroringChange', ...)`](#addlisteneronscreenmirroringchange-)
+* [`echo(...)`](#echo)
+* [`show(...)`](#show)
+* [`history()`](#history)
+* [`requestPermissions()`](#requestpermissions)
+* [`checkPermissions()`](#checkpermissions)
+* [`addListener('onRouteProgressChange', ...)`](#addlisteneronrouteprogresschange-)
+* [`addListener('onScreenMirroringChange', ...)`](#addlisteneronscreenmirroringchange-)
 * [`addListener('onNavigationStop', ...)`](#addlisteneronnavigationstop-)
-- [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
-- [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
-- [`removeAllListeners()`](#removealllisteners)
-- [Interfaces](#interfaces)
-- [Type Aliases](#type-aliases)
+* [`addListener('onNavigationComplete', ...)`](#addlisteneronnavigationcomplete-)
+* [`addListener('plusButtonClicked', ...)`](#addlistenerplusbuttonclicked-)
+* [`addListener('minusButtonClicked', ...)`](#addlistenerminusbuttonclicked-)
+* [`removeAllListeners()`](#removealllisteners)
+* [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
 
 </docgen-index>
 
@@ -220,7 +221,8 @@ echo(options: { value: string; }) => Promise<{ value: string; }>
 
 **Returns:** <code>Promise&lt;{ value: string; }&gt;</code>
 
----
+--------------------
+
 
 ### show(...)
 
@@ -234,7 +236,8 @@ show(options: MapboxNavOptions) => Promise<MapboxResult>
 
 **Returns:** <code>Promise&lt;<a href="#mapboxresult">MapboxResult</a>&gt;</code>
 
----
+--------------------
+
 
 ### history()
 
@@ -244,7 +247,8 @@ history() => Promise<any>
 
 **Returns:** <code>Promise&lt;any&gt;</code>
 
----
+--------------------
+
 
 ### requestPermissions()
 
@@ -254,7 +258,8 @@ requestPermissions() => Promise<PermissionStatus>
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
----
+--------------------
+
 
 ### checkPermissions()
 
@@ -264,7 +269,8 @@ checkPermissions() => Promise<PermissionStatus>
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
----
+--------------------
+
 
 ### addListener('onRouteProgressChange', ...)
 
@@ -279,7 +285,8 @@ addListener(eventName: 'onRouteProgressChange', listenerFunc: (data: any) => any
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
----
+--------------------
+
 
 ### addListener('onScreenMirroringChange', ...)
 
@@ -313,6 +320,22 @@ addListener(eventName: 'onNavigationStop', listenerFunc: (data: OnNavigationStop
 --------------------
 
 
+### addListener('onNavigationComplete', ...)
+
+```typescript
+addListener(eventName: 'onNavigationComplete', listenerFunc: () => any) => Promise<PluginListenerHandle>
+```
+
+| Param              | Type                                |
+| ------------------ | ----------------------------------- |
+| **`eventName`**    | <code>'onNavigationComplete'</code> |
+| **`listenerFunc`** | <code>() =&gt; any</code>           |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
 ### addListener('plusButtonClicked', ...)
 
 ```typescript
@@ -326,7 +349,8 @@ addListener(eventName: 'plusButtonClicked', listenerFunc: (data: Record<string, 
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
----
+--------------------
+
 
 ### addListener('minusButtonClicked', ...)
 
@@ -341,7 +365,8 @@ addListener(eventName: 'minusButtonClicked', listenerFunc: (data: Record<string,
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
----
+--------------------
+
 
 ### removeAllListeners()
 
@@ -349,17 +374,19 @@ addListener(eventName: 'minusButtonClicked', listenerFunc: (data: Record<string,
 removeAllListeners() => Promise<void>
 ```
 
----
+--------------------
+
 
 ### Interfaces
 
+
 #### MapboxResult
 
-| Prop         | Type                                                                                                     |
-| ------------ | -------------------------------------------------------------------------------------------------------- |
-| **`status`** | <code>'success' \| 'failure'</code>                                                                      |
-| **`type`**   | <code>'onNavigationStop' \| 'on_failure' \| 'on_cancelled' \| 'on_progress_update' \| 'on_arrive'</code> |
-| **`data`**   | <code>string</code>                                                                                      |
+| Prop         | Type                                                                                      |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| **`status`** | <code>'success' \| 'failure'</code>                                                       |
+| **`type`**   | <code>'onNavigationStop' \| 'on_failure' \| 'on_cancelled' \| 'on_progress_update'</code> |
+| **`data`**   | <code>string</code>                                                                       |
 
 
 #### MapboxNavOptions
@@ -369,6 +396,7 @@ removeAllListeners() => Promise<void>
 | **`routes`**     | <code>LocationOption[]</code> |
 | **`simulating`** | <code>boolean</code>          |
 
+
 #### LocationOption
 
 | Prop            | Type                |
@@ -376,17 +404,20 @@ removeAllListeners() => Promise<void>
 | **`latitude`**  | <code>number</code> |
 | **`longitude`** | <code>number</code> |
 
+
 #### PermissionStatus
 
 | Prop           | Type                                                        |
 | -------------- | ----------------------------------------------------------- |
 | **`location`** | <code><a href="#permissionstate">PermissionState</a></code> |
 
+
 #### PluginListenerHandle
 
 | Prop         | Type                                      |
 | ------------ | ----------------------------------------- |
 | **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
+
 
 #### ScreenMirroringChangeEvent
 
@@ -406,16 +437,16 @@ removeAllListeners() => Promise<void>
 
 ### Type Aliases
 
+
 #### PermissionState
 
 <code>'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'</code>
+
 
 #### Record
 
 Construct a type with a set of properties K of type T
 
-<code>{
- [P in K]: T;
- }</code>
+<code>{ [P in K]: T; }</code>
 
 </docgen-api>

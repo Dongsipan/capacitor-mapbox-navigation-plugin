@@ -135,4 +135,10 @@ class CapacitorMapboxNavigationPlugin : Plugin() {
             notifyListeners("onNavigationStop", data)
         }
     }
+
+    fun triggerOnNavigationCompleteEvent() {
+        if (hasListeners("onNavigationComplete")) {
+            notifyListeners("onNavigationComplete", null)
+        }
+    }
 }

@@ -17,6 +17,10 @@ export interface CapacitorMapboxNavigationPlugin {
     listenerFunc: (data: OnNavigationStopEvent) => any,
   ): Promise<PluginListenerHandle>;
   addListener(
+    eventName: 'onNavigationComplete',
+    listenerFunc: () => any,
+  ): Promise<PluginListenerHandle>;
+  addListener(
     eventName: 'plusButtonClicked',
     listenerFunc: (data: Record<string, never>) => any,
   ): Promise<PluginListenerHandle>;
@@ -33,7 +37,7 @@ export interface PermissionStatus {
 
 export interface MapboxResult {
   status: 'success' | 'failure';
-  type: 'on_failure' | 'on_cancelled' | 'onNavigationStop' | 'on_progress_update' | 'on_arrive';
+  type: 'on_failure' | 'on_cancelled' | 'onNavigationStop' | 'on_progress_update';
   data: string;
 }
 

@@ -363,7 +363,11 @@ public class CapacitorMapboxNavigationPlugin: CAPPlugin, NavigationViewControlle
             let locationJsonData = try jsonEncoder.encode(loc)
             let locationJson = String(data: locationJsonData, encoding: String.Encoding.utf8) ?? ""
 
-            sendDataToCapacitor(status: "success", type: "on_arrive", content: locationJson)
+            DispatchQueue.main.async {
+                if self.hasListeners("onNavigationComplete") {
+                    self.notifyListeners("onNavigationComplete", data: nil)
+                }
+            }
         } catch {
             sendDataToCapacitor(status: "failure", type: "on_failure", content: "Error: Json Encoding Error")
         }

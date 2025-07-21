@@ -36,6 +36,7 @@ import com.mapbox.navigation.base.route.NavigationRouterCallback
 import com.mapbox.navigation.base.route.RouterFailure
 import com.mapbox.navigation.base.route.RouterOrigin
 import com.mapbox.navigation.base.trip.model.RouteProgress
+import com.mapbox.navigation.base.trip.model.RouteProgressState
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.directions.session.RoutesObserver
 import com.mapbox.navigation.core.formatter.MapboxDistanceFormatter
@@ -209,6 +210,12 @@ class NavigationDialogFragment : DialogFragment() {
                 type = "onRouteProgressChange",
                 content = currentProgressData
             )
+
+            // 检查是否到达终点，仅抛出onNavigationComplete事件（无参数）
+            if (routeProgress.currentState == RouteProgressState.COMPLETE) {
+                val plugin = CapacitorMapboxNavigationPlugin.getInstance()
+                plugin?.triggerOnNavigationCompleteEvent()
+            }
         }
     }
 
