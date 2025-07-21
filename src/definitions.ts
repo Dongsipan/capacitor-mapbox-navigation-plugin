@@ -13,6 +13,10 @@ export interface CapacitorMapboxNavigationPlugin {
     listenerFunc: (data: ScreenMirroringChangeEvent) => any,
   ): Promise<PluginListenerHandle>;
   addListener(
+    eventName: 'onNavigationStop',
+    listenerFunc: (data: OnNavigationStopEvent) => any,
+  ): Promise<PluginListenerHandle>;
+  addListener(
     eventName: 'plusButtonClicked',
     listenerFunc: (data: Record<string, never>) => any,
   ): Promise<PluginListenerHandle>;
@@ -29,7 +33,7 @@ export interface PermissionStatus {
 
 export interface MapboxResult {
   status: 'success' | 'failure';
-  type: 'on_failure' | 'on_cancelled' | 'on_stop' | 'on_progress_update' | 'on_arrive';
+  type: 'on_failure' | 'on_cancelled' | 'onNavigationStop' | 'on_progress_update' | 'on_arrive';
   data: string;
 }
 
@@ -45,5 +49,13 @@ export interface LocationOption {
 
 export interface ScreenMirroringChangeEvent {
   enabled: boolean;
-  timestamp?: number;
+}
+
+export interface OnNavigationStopEvent {
+  status: 'success' | 'failure';
+  type: 'onNavigationStop';
+  content: {
+    message: string;
+    timestamp: number;
+  };
 }
